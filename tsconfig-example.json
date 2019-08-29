@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
+    "outDir": "example-dist",
     "target": "es5",
     "module": "commonjs",
     "strict": true,
-    "declaration": true,
+    "declaration": false,
     "noImplicitAny": false,
     "esModuleInterop": true,
     "downlevelIteration": true,
@@ -12,6 +12,7 @@
     "experimentalDecorators": true,
     "resolveJsonModule": true,
     "removeComments": true,
+    "allowJs": true,
     "jsx": "react",
     "lib": [
       "dom",
@@ -23,11 +24,15 @@
     "paths": {}
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "example/**/*",
+    "webpack.config.js"
   ],
   "exclude": [
     "src/**/*.js",
+    "example/**/*.js",
     "src/**/*.d.ts",
+    "example/**/*.d.ts",
     ".storybook/",
     "dist/",
     "node_modules/"

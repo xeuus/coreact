@@ -3,4 +3,6 @@
 .vscode
 .env
 dist
+example-bundle
+example-dist
 node_modules
