@@ -1,0 +1,30 @@
+{
+  "name": "corect",
+  "version": "1.0.0",
+  "description": "react core architecture",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "ship": "npm run build && npm publish"
+  },
+  "homepage": "https://github.com/xeuus/coreact",
+  "author": "Aryan Alikhani",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xeuus/coreact.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xeuus/coreact/issues"
+  },
+  "devDependencies": {
+    "@types/node": "^11.13.18",
+    "@types/react": "^16.8.23",
+    "@types/react-dom": "^16.8.5",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "typescript": "^3.5.3"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "target": "es5",
+    "module": "commonjs",
+    "strict": false,
+    "declaration": true,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "downlevelIteration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "lib": [
+      "dom",
+      "es2015",
+      "es2016.array.include",
+      "es6"
+    ],
+    "baseUrl": ".",
+    "paths": {}
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "src/**/*.js",
+    "src/**/*.d.ts",
+    ".storybook/",
+    "dist/",
+    "node_modules/"
+  ]
+}
