@@ -6,9 +6,9 @@ import { Html } from './components/html';
 import { wrapHtml } from './helpers/wrapHtml';
 import { Options } from './interfaces/options';
 import { AppContext, AppContextProvider } from './context';
-import {deflate} from 'pako';
 import { ServerPortal } from './components/serverPortal';
 import { randomString } from './helpers/random';
+import { globalModels } from './models/saviour';
 
 export const serverHandler = (app: Express, options: Options) => {
   const { matches, assets, gzip, webpackOptions, path, provider } = options;
@@ -67,9 +67,7 @@ export const serverHandler = (app: Express, options: Options) => {
       const context: AppContext = {};
       const p = new provider(context);
       p.prepare();
-
-
-
+      globalModels.forEach(a => console.log(a.name));
       const saltKey = randomString(50);
       const now = new Date().toISOString();
       const cipher = saltKey + now;
@@ -78,8 +76,8 @@ export const serverHandler = (app: Express, options: Options) => {
           <Html
             id={p.name}
             beginHead={<Fragment>
-              <meta id="app-view-state"  key="view-state" content={saltKey}/>
-              <meta id="app-token"  key="view-state" content={randomString(10)}/>
+              <meta id="app-view-state" key="view-state" content={saltKey}/>
+              <meta id="app-token" key="view-state" content={randomString(10)}/>
               <meta id="app-date-time" key="date-time" content={now}/>
             </Fragment>}
             endHead={<Fragment>
