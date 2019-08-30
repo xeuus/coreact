@@ -1,8 +1,9 @@
 import { isClient } from './isClient';
 
-export let viewState: any = null;
-export let dateTime: any = null;
-export let token: any = null;
+export let viewState: string = '';
+export let dateTime: string = '';
+export let token: string = '';
+export let baseUrl: string = '';
 
 export const readMeta = (metaId: string)=>{
   const element = document.getElementById(metaId);
@@ -17,5 +18,6 @@ export const readMeta = (metaId: string)=>{
     viewState = readMeta('app-view-state');
     token = readMeta('app-token');
     dateTime = readMeta('app-date-time');
+    dateTime = readMeta('app-base-url');
   }
 })();

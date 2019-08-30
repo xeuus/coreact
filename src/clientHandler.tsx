@@ -1,23 +1,36 @@
 import React from 'react';
-import { hydrate, render } from 'react-dom';
-import { AppProvider } from './appProvider';
-import { AppContext } from './context';
-import { globalModels } from './models/saviour';
+import {hydrate, render} from 'react-dom';
+import {AppProvider} from './appProvider';
+import {ApplicationContext, AppContextProvider} from './appContext';
+import {ViewHolder} from "./components/viewHolder";
+import {globalModels} from "./models/service";
 
-export const clientHandler = (provider: typeof AppProvider) => {
-  const context: AppContext = {};
+export const clientHandler = (provider: typeof AppProvider): (() => any) => {
+  const context: ApplicationContext = {
+    url: window.location.pathname+window.location.search,
+    services: {},
+  };
+  globalModels.forEach((a: any) => {
+    context.services[a.identifier] = new a();
+  });
   const p = new provider(context);
   p.prepare();
-
-  globalModels.forEach(a => console.log(a.name));
-
   const element = document.getElementById(p.name);
+
+  const app = <ViewHolder
+    process={async () => {
+      return 'hello';
+    }}>{
+      () => <AppContextProvider value={context}>
+        {p.application}
+      </AppContextProvider>
+    }</ViewHolder>;
   if (process.env.NODE_ENV === 'production') {
-    hydrate(p.application as any, element);
+    hydrate(app, element);
     return () => null;
   } else {
-    render(p.application as any, element);
-    const update =  () => hydrate(p.application as any, element);
+    render(app, element);
+    const update = () => hydrate(app, element);
     window.addEventListener('orientationchange', () => {
       update();
     });

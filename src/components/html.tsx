@@ -18,7 +18,7 @@ export const Html = (props: HtmlProps) => {
   <head>
     {beginHead}
     <meta charSet="utf-8"/>
-    <meta name="baseUrl" content={baseUrl || ''}/>
+    <meta id="baseUrl" name="baseUrl" content={baseUrl || ''}/>
     {endHead}
   </head>
   <body>

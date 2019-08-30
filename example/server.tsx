@@ -14,7 +14,7 @@ serverHandler(app, {
   assets: isDevelopment ? [
     '/example.js?324!defer',
   ] : [
-    '/example.js?343!defer',
+    '/example.js!defer',
     '/example.css',
   ],
   gzip: true,
