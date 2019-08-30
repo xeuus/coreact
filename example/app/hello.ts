@@ -1,8 +1,8 @@
-import { BaseService } from '../../src/models/baseService';
-import { Service } from '../../src/models/service';
+import { BaseService } from '../../src/dependencyInjection/baseService';
+import { Service } from '../../src/dependencyInjection/service';
 
 
-@Service
+@Service()
 export class Hello extends BaseService {
 
 }

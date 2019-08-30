@@ -34,7 +34,7 @@ module.exports = {
     } : {}),
   },
   node: {
-    fs: 'empty',
+    fs: 'empty'
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],

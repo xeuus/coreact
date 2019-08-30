@@ -1,19 +1,26 @@
 import React, { Fragment } from 'react';
 import express, { Express, Request, Response } from 'express';
-
 import { renderToString } from 'react-dom/server';
-import { Html } from './components/html';
-import { wrapHtml } from './helpers/wrapHtml';
-import { Options } from './interfaces/options';
-import { ApplicationContext, AppContextProvider } from './appContext';
+
+import { RequestContext } from './dependencyInjection/requestContext';
+import {AppContextProvider } from './dependencyInjection/appContext';
 import { ServerPortal } from './components/serverPortal';
+import { Html } from './components/html';
 import { randomString } from './helpers/random';
-import { globalModels } from './models/service';
-import {Search} from "../example/app/search";
+import { wrapHtml } from './helpers/wrapHtml';
+import { container } from './dependencyInjection/container';
+import { AppProvider } from './appProvider';
 
-export const serverHandler = (app: Express, options: Options) => {
+export type ServerHandlerOptions = {
+  matches: string[];
+  assets: string[];
+  gzip?: boolean;
+  path: string;
+  webpackOptions: any;
+  provider: typeof AppProvider;
+}
+export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
   const { matches, assets, gzip, webpackOptions, path, provider } = options;
-
 
   const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -69,14 +76,11 @@ export const serverHandler = (app: Express, options: Options) => {
       }
     });
     app.get(match, async (req: Request, res: Response) => {
-      const context: ApplicationContext = {
+      const context: RequestContext = {
         url: req.url,
-        services: {},
+        services: container.instantiateRequestServices(),
       };
-      globalModels.forEach((a: any) => {
-        context.services[a.identifier] = new a();
-      });
-
+      Object.freeze(context);
       const p = new provider(context);
       p.prepare();
       const saltKey = randomString(50);
