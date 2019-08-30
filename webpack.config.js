@@ -10,15 +10,17 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 
 module.exports = {
   mode: isDevelopment ? 'development' : 'production',
-  devtool: 'sourcemap',
+  devtool: 'none',
   target: 'web',
   entry: {
     example: isDevelopment ? [
       'react-hot-loader/patch',
       'webpack-hot-middleware/client?path=/__webpackhmr&timeout=20000&reload=true',
-      './example/client.ts'
+      './example/client.ts',
+      './example/app.scss'
     ] : [
       './example/client.ts',
+      './example/app.scss'
     ],
   },
   output: {
