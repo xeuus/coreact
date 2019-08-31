@@ -78,9 +78,11 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
     app.get(match, async (req: Request, res: Response) => {
       const context: RequestContext = {
         url: req.url,
-        services: container.instantiateRequestServices(),
+        services: {},
+        observers: {},
       };
-      Object.freeze(context);
+      context.services = container.instantiateRequestServices(context);
+      Object.seal(context);
       const p = new provider(context);
       p.prepare();
       const saltKey = randomString(50);
@@ -114,6 +116,8 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
           </Html>
         </AppContextProvider>
       );
+
+      console.log(context);
       res.statusCode = 200;
       res.end(wrapHtml(html));
     });

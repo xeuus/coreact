@@ -9,9 +9,11 @@ import { RequestContext } from './dependencyInjection/requestContext';
 export const clientHandler = (provider: typeof AppProvider): (() => any) => {
   const context: RequestContext = {
     url: window.location.pathname+window.location.search,
-    services: container.instantiateRequestServices(),
+    services: {},
+    observers: {},
   };
-  Object.freeze(context);
+  context.services = container.instantiateRequestServices(context);
+  Object.seal(context);
   const p = new provider(context);
   p.prepare();
   const element = document.getElementById(p.name);
