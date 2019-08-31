@@ -1,9 +1,7 @@
 import React, { Fragment, Component } from 'react';
 import { Search } from "./search";
-import { Hello } from "./hello";
 import { Inject } from "../../src/dependencyInjection/inject";
 import { Consumer } from "../../src/dependencyInjection/consumer";
-import { Observer } from '../../src/observer/observer';
 import { Temp } from './temp';
 
 
@@ -15,9 +13,6 @@ export type AppProps = {
 export class App extends Component<AppProps> {
   @Inject(Search) search: Search;
 
-  componentWillMount(){
-    this.search.sayHello();
-  }
   render() {
     const { name } = this.props;
     return <div>

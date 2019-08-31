@@ -85,10 +85,14 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
       Object.seal(context);
       const p = new provider(context);
       p.prepare();
+
+      await container.fetchData(context);
+
       const saltKey = randomString(50);
       const now = new Date().toISOString();
       const cipher = saltKey + now;
-      let html = renderToString(
+      const data = container.gatherData(context);
+      const html = renderToString(
         <AppContextProvider value={context}>
           <Html
             id={p.name}
@@ -108,19 +112,18 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
                 }
               })}
             </Fragment>}
-            beginBody={<Fragment><input type="hidden" id="store_data"/></Fragment>}
+            beginBody={<Fragment>
+              {Object.keys(data).map(key => {
+                const obj = JSON.stringify(data[key]);
+                const sec = makeCipher(cipher, obj);
+                return <input id={`bridge_${key}`} key={key} type="hidden" value={sec}/>;
+              })}
+            </Fragment>}
           >
           {!isDevelopment && p.application}
           </Html>
         </AppContextProvider>
       );
-      const data = container.gatherData(context);
-      const secure = Object.keys(data).map(key => {
-        const obj = JSON.stringify(data[key]);
-        const sec = makeCipher(cipher, obj);
-        return `<input id="bridge_${key}" type="hidden" value="${sec}">`;
-      })
-      html = html.replace('<input type="hidden" id="store_data"/>', secure.join(''));
       res.statusCode = 200;
       res.end(wrapHtml(html));
     });

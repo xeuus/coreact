@@ -17,7 +17,7 @@ export type TempState = {
 export class Temp extends Component<TempProps, TempState> {
   state: TempState = {
     index: 0,
-  }
+  };
 
   @Inject(Search) search: Search;
 
@@ -25,7 +25,6 @@ export class Temp extends Component<TempProps, TempState> {
 
   @Observer(Search)
   observer(state: any) {
-    console.log(state);
     this.setState({
       index: this.search.index,
     })

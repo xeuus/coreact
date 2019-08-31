@@ -5,6 +5,9 @@ export class BaseService {
 	constructor(context: RequestContext){
 		this.context = context;
 	}
+	async preload(){
+
+  }
 	instantiate(){
 	}
 	mount(){

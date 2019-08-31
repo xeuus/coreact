@@ -1,6 +1,6 @@
-import { BaseService } from '../../src/dependencyInjection/baseService';
-import { Service } from '../../src/dependencyInjection/service';
-import { Observable } from '../../src/observer/observable';
+import {BaseService} from '../../src/dependencyInjection/baseService';
+import {Service} from '../../src/dependencyInjection/service';
+import {Observable} from '../../src/observer/observable';
 
 
 @Service('Search')
@@ -11,8 +11,11 @@ export class Search extends BaseService {
   @Observable()
   name: string = 'aryan';
 
+  preload = async () => {
+    this.index = 454;
+  };
 
   sayHello = () => {
-    this.index++;
+    return this.index++;
   }
 }
