@@ -14,10 +14,10 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
   };
   context.services = container.instantiateRequestServices(context);
   Object.seal(context);
+  container.restoreData(context);
   const p = new provider(context);
   p.prepare();
   const element = document.getElementById(p.name);
-
   const app = <ViewHolder
     process={async () => {
       return 'hello';

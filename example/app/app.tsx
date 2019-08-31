@@ -15,6 +15,9 @@ export type AppProps = {
 export class App extends Component<AppProps> {
   @Inject(Search) search: Search;
 
+  componentWillMount(){
+    this.search.sayHello();
+  }
   render() {
     const { name } = this.props;
     return <div>

@@ -37,7 +37,6 @@ export class Bus {
 	}
 
 	private queueWorker = () => {
-		setTimeout(() => {
 			for (let event of this.queue) {
 				const { type, data, callback } = event;
 				const listeners = this.events[type];
@@ -56,6 +55,5 @@ export class Bus {
 					this.queue.splice(index, 1);
 				}
 			}
-		}, 0);
 	};
 }

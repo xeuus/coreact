@@ -1,10 +1,9 @@
 import { BaseService } from '../../src/dependencyInjection/baseService';
 import { Service } from '../../src/dependencyInjection/service';
 import { Observable } from '../../src/observer/observable';
-import { Observer } from '../../src/observer/observer';
 
 
-@Service()
+@Service('Search')
 export class Search extends BaseService {
   @Observable()
   index: number = 0;

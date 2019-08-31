@@ -4,7 +4,7 @@ import { ServiceType } from './serviceType';
 import { RequestContext } from './requestContext';
 import { Bus } from '../observer/bus';
 
-export function Service<T extends typeof BaseService>(type: ServiceType = 'request') {
+export function Service<T extends typeof BaseService>(name: string, type: ServiceType = 'request') {
   return (service: T) => {
     const original = service;
 
@@ -12,7 +12,6 @@ export function Service<T extends typeof BaseService>(type: ServiceType = 'reque
       const context = args[0] as RequestContext;
       const id = this.__identifier__;
       const instance = new (service as any)(context);
-      console.log(context);
       context.observers[id] = context.observers[id] || new Bus();
       const bus = context.observers[id] as Bus;
       const unsubscribes = <Function[]>[];      
@@ -83,7 +82,7 @@ export function Service<T extends typeof BaseService>(type: ServiceType = 'reque
       return original.apply(this, args as any)
     }
     f.prototype = original.prototype;
-    container.registerService(f, type);
+    container.registerService(name, f, type);
     return f
   }
 }

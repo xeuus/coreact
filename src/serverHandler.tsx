@@ -4,7 +4,7 @@ import { renderToString } from 'react-dom/server';
 
 import { RequestContext } from './dependencyInjection/requestContext';
 import {AppContextProvider } from './dependencyInjection/appContext';
-import { ServerPortal } from './components/serverPortal';
+import { ServerPortal, makeCipher } from './components/serverPortal';
 import { Html } from './components/html';
 import { randomString } from './helpers/random';
 import { wrapHtml } from './helpers/wrapHtml';
@@ -88,7 +88,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
       const saltKey = randomString(50);
       const now = new Date().toISOString();
       const cipher = saltKey + now;
-      const html = renderToString(
+      let html = renderToString(
         <AppContextProvider value={context}>
           <Html
             id={p.name}
@@ -100,7 +100,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
             endHead={<Fragment>
               {assets.map((asset, i) => {
                 const [file, ...spl] = asset.split('!');
-                const [name, version] = file.split('?');
+                const [name] = file.split('?');
                 if (name.substr(-2) === 'js') {
                   return <script key={i} src={assetsDir + file} defer={spl.includes('defer')}/>;
                 } else if (name.substr(-3) === 'css') {
@@ -108,16 +108,19 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
                 }
               })}
             </Fragment>}
-            beginBody={<Fragment>
-              <ServerPortal id="app-data" cipher={cipher} data="hello world and fuck you universe"/>
-            </Fragment>}
+            beginBody={<Fragment><input type="hidden" id="store_data"/></Fragment>}
           >
           {!isDevelopment && p.application}
           </Html>
         </AppContextProvider>
       );
-
-      console.log(context);
+      const data = container.gatherData(context);
+      const secure = Object.keys(data).map(key => {
+        const obj = JSON.stringify(data[key]);
+        const sec = makeCipher(cipher, obj);
+        return `<input id="bridge_${key}" type="hidden" value="${sec}">`;
+      })
+      html = html.replace('<input type="hidden" id="store_data"/>', secure.join(''));
       res.statusCode = 200;
       res.end(wrapHtml(html));
     });

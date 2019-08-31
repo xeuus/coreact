@@ -69,7 +69,6 @@ export function Consumer<T extends typeof Component>(consumer: T) {
         }
       }
     });
-
     instantiates.forEach(a => a.bind(this)());
     const originalDidMount = this.componentDidMount;
     if (originalDidMount) {

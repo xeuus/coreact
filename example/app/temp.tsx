@@ -9,7 +9,6 @@ import { Lists } from './lists';
 export type TempProps = {
 }
 
-
 export type TempState = {
   index: number;
 }
@@ -26,7 +25,7 @@ export class Temp extends Component<TempProps, TempState> {
 
   @Observer(Search)
   observer(state: any) {
-    console.log(this.search.index)
+    console.log(state);
     this.setState({
       index: this.search.index,
     })
@@ -35,11 +34,6 @@ export class Temp extends Component<TempProps, TempState> {
   render() {
     return <div>
       Hello {this.search.index}
-      <b>{this.lists.showAndNext()}</b>
-      <b>{this.lists.showAndNext()}</b>
-      <b>{this.lists.showAndNext()}</b>
-      <b>{this.lists.showAndNext()}</b>
-      <b>{this.lists.showAndNext()}</b>
       <button onClick={() => this.lists.message()}>show</button>
     </div>
   }
