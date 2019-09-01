@@ -19,9 +19,9 @@ module.exports = {
       './example/client.ts',
       './example/app.scss'
     ] : [
-      './example/client.ts',
-      './example/app.scss'
-    ],
+        './example/client.ts',
+        './example/app.scss'
+      ],
   },
   output: {
     filename: '[name].js',
@@ -34,7 +34,7 @@ module.exports = {
     } : {}),
   },
   node: {
-    fs: 'empty',
+    fs: 'empty'
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
@@ -59,23 +59,27 @@ module.exports = {
       },
     ],
   },
+  optimization: {
+    minimizer: [
+      new TerserPlugin({
+        parallel: 2,
+        terserOptions: {
+          ecma: 6,
+        },
+      }),
+    ]
+  },
   plugins: isDevelopment ? [
     new webpack.HotModuleReplacementPlugin(),
   ] : [
-    new TerserPlugin({
-      parallel: true,
-      terserOptions: {
-        ecma: 6,
-      },
-    }),
-    new CompressionPlugin({
-      test: /(\.js)$/,
-      deleteOriginalAssets: true,
-    }),
-    new OptimizeCSSAssetsPlugin(),
-    new MiniCssExtractPlugin({
-      filename: '[name].css',
-      chunkFilename: '[key].css',
-    }),
-  ],
+      new CompressionPlugin({
+        test: /(\.js)$/,
+        deleteOriginalAssets: true,
+      }),
+      new OptimizeCSSAssetsPlugin(),
+      new MiniCssExtractPlugin({
+        filename: '[name].css',
+        chunkFilename: '[key].css',
+      }),
+    ],
 };

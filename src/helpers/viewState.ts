@@ -18,6 +18,6 @@ export const readMeta = (metaId: string)=>{
     viewState = readMeta('app-view-state');
     token = readMeta('app-token');
     dateTime = readMeta('app-date-time');
-    dateTime = readMeta('app-base-url');
+    baseUrl = readMeta('app-base-url');
   }
 })();

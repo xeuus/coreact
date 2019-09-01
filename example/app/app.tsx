@@ -1,28 +1,24 @@
-import React, {Component} from 'react';
-import {Search} from "./search";
-import {AppContextConsumer, ApplicationContext} from "../../src/appContext";
-import {AutoWire} from "../../src/models/autoWire";
-import {ViewLayer} from "../../src/models/viewLayer";
-import {Hello} from "./hello";
+import React, { Fragment, Component } from 'react';
+import { Search } from "./search";
+import { Inject } from "../../src/dependencyInjection/inject";
+import { Consumer } from "../../src/dependencyInjection/consumer";
+import { Temp } from './temp';
+
 
 export type AppProps = {
   name: string;
-  ____context?: ApplicationContext;
 }
 
-
-@ViewLayer
+@Consumer
 export class App extends Component<AppProps> {
-  search = AutoWire.bind(this)(Search);
-  hello = AutoWire.bind(this)(Hello);
+  @Inject(Search) search: Search;
 
   render() {
+    const { name } = this.props;
     return <div>
-      Hello World
-      <b>{this.search.sayHello()}</b>
-      <b>{this.search.sayHello()}</b>
-      <b>{this.search.sayHello()}</b>
-      <AppContextConsumer>{context => <div>{context.url}</div>}</AppContextConsumer>
+      <div>Hello {name}</div>
+      <button onClick={this.search.sayHello}>click</button>
+      <Temp/>
     </div>
   }
 }

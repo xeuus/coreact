@@ -1,19 +1,26 @@
 import React, { Fragment } from 'react';
 import express, { Express, Request, Response } from 'express';
-
 import { renderToString } from 'react-dom/server';
+
+import { RequestContext } from './dependencyInjection/requestContext';
+import {AppContextProvider } from './dependencyInjection/appContext';
+import { ServerPortal, makeCipher } from './components/serverPortal';
 import { Html } from './components/html';
-import { wrapHtml } from './helpers/wrapHtml';
-import { Options } from './interfaces/options';
-import { ApplicationContext, AppContextProvider } from './appContext';
-import { ServerPortal } from './components/serverPortal';
 import { randomString } from './helpers/random';
-import { globalModels } from './models/service';
-import {Search} from "../example/app/search";
+import { wrapHtml } from './helpers/wrapHtml';
+import { container } from './dependencyInjection/container';
+import { AppProvider } from './appProvider';
 
-export const serverHandler = (app: Express, options: Options) => {
+export type ServerHandlerOptions = {
+  matches: string[];
+  assets: string[];
+  gzip?: boolean;
+  path: string;
+  webpackOptions: any;
+  provider: typeof AppProvider;
+}
+export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
   const { matches, assets, gzip, webpackOptions, path, provider } = options;
-
 
   const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -69,19 +76,22 @@ export const serverHandler = (app: Express, options: Options) => {
       }
     });
     app.get(match, async (req: Request, res: Response) => {
-      const context: ApplicationContext = {
+      const context: RequestContext = {
         url: req.url,
         services: {},
+        observers: {},
       };
-      globalModels.forEach((a: any) => {
-        context.services[a.identifier] = new a();
-      });
-
+      context.services = container.instantiateRequestServices(context);
+      Object.seal(context);
       const p = new provider(context);
       p.prepare();
+
+      await container.fetchData(context);
+
       const saltKey = randomString(50);
       const now = new Date().toISOString();
       const cipher = saltKey + now;
+      const data = container.gatherData(context);
       const html = renderToString(
         <AppContextProvider value={context}>
           <Html
@@ -94,7 +104,7 @@ export const serverHandler = (app: Express, options: Options) => {
             endHead={<Fragment>
               {assets.map((asset, i) => {
                 const [file, ...spl] = asset.split('!');
-                const [name, version] = file.split('?');
+                const [name] = file.split('?');
                 if (name.substr(-2) === 'js') {
                   return <script key={i} src={assetsDir + file} defer={spl.includes('defer')}/>;
                 } else if (name.substr(-3) === 'css') {
@@ -103,7 +113,11 @@ export const serverHandler = (app: Express, options: Options) => {
               })}
             </Fragment>}
             beginBody={<Fragment>
-              <ServerPortal id="app-data" cipher={cipher} data="hello world and fuck you universe"/>
+              {Object.keys(data).map(key => {
+                const obj = JSON.stringify(data[key]);
+                const sec = makeCipher(cipher, obj);
+                return <input id={`bridge_${key}`} key={key} type="hidden" value={sec}/>;
+              })}
             </Fragment>}
           >
           {!isDevelopment && p.application}
