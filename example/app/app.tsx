@@ -1,24 +1,28 @@
-import React, { Fragment, Component } from 'react';
-import { Search } from "./search";
-import { Inject } from "../../src/dependencyInjection/inject";
-import { Consumer } from "../../src/dependencyInjection/consumer";
+import React, { Component } from 'react';
+import { Consumer, Inject } from '../../src';
+import { Route, Switch } from 'react-router';
 import { Temp } from './temp';
+import { Routing } from '../../src/router';
 
 
 export type AppProps = {
-  name: string;
+	name: string;
 }
 
 @Consumer
 export class App extends Component<AppProps> {
-  @Inject(Search) search: Search;
+	@Inject(Routing)
+	routing: Routing;
 
-  render() {
-    const { name } = this.props;
-    return <div>
-      <div>Hello {name}</div>
-      <button onClick={this.search.sayHello}>click</button>
-      <Temp/>
-    </div>
-  }
+	render() {
+		const { name } = this.props;
+		return <Switch>
+			<Route path="/aryan" component={Temp}/>
+			<Route path="/test" component={() => <div>
+				<button onClick={()=>{
+					this.routing.push('/aryan/')
+				}}>aryan</button>
+			</div>}/>
+		</Switch>
+	}
 }

@@ -1,39 +1,40 @@
-import React, { Fragment, Component } from 'react';
-import { Search } from "./search";
-import { Inject } from "../../src/dependencyInjection/inject";
-import { Consumer } from "../../src/dependencyInjection/consumer";
-import { Observer } from '../../src/observer/observer';
-import { Lists } from './lists';
+import React, { Component } from 'react';
+import { Search } from './services/search';
+import { Consumer, Inject, Observer } from '../../src';
+import { Link } from 'react-router-dom';
+import { Home } from './services/home';
 
-
-export type TempProps = {
-}
+export type TempProps = {}
 
 export type TempState = {
-  index: number;
+	name: string;
 }
 
 @Consumer
 export class Temp extends Component<TempProps, TempState> {
-  state: TempState = {
-    index: 0,
-  };
+	state: TempState = {
+		name: null,
+	};
 
-  @Inject(Search) search: Search;
+	@Inject(Search)
+	search: Search;
 
-  @Inject(Lists) lists: Lists;
+	@Inject(Home)
+	home: Home;
 
-  @Observer(Search)
-  observer(state: any) {
-    this.setState({
-      index: this.search.index,
-    })
-  }
 
-  render() {
-    return <div>
-      Hello {this.search.index}
-      <button onClick={() => this.lists.message()}>show</button>
-    </div>
-  }
+	@Observer(Search)
+	observer(state: any) {
+		this.setState({
+			name: this.search.name,
+		});
+	}
+
+	render() {
+		return <div>
+			<button onClick={this.home.search.sayHello}>click</button>
+			{this.search.name}
+			<Link to="/test/">test</Link>
+		</div>;
+	}
 }
