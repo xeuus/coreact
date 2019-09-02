@@ -1,4 +1,4 @@
-import { BaseService } from 'src/system/baseService';
+import { BaseService } from '../system/baseService';
 
 export function Observer<T extends typeof BaseService>(context?: T | string, type?: keyof T['prototype']) {
 	return function (target: any, key: string) {
