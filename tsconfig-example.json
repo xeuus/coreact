@@ -14,7 +14,6 @@
     "experimentalDecorators": true,
     "resolveJsonModule": true,
     "removeComments": true,
-    "allowJs": true,
     "jsx": "react",
     "lib": [
       "dom",
@@ -27,8 +26,7 @@
   },
   "include": [
     "src/**/*",
-    "example/**/*",
-    "webpack.config.js"
+    "example/**/*"
   ],
   "exclude": [
     "src/**/*.js",

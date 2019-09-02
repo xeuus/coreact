@@ -1,8 +1,4 @@
-import { Provider } from './app/provider';
-import { clientHandler } from '../src/clientHandler';
-import { container } from '../src/dependencyInjection/container';
+import { Provider } from './provider';
+import { clientHandler } from '../src';
 
-(() => {
-	const hydrate = clientHandler(Provider);
-	module.hot && module.hot.accept(hydrate);
-})();
+module.hot && module.hot.accept(clientHandler(Provider));

@@ -4,15 +4,15 @@ import { Consumer, Inject, Observer } from '../../src';
 import { Link } from 'react-router-dom';
 import { Home } from './services/home';
 
-export type TempProps = {}
+export type JunkProps = {}
 
-export type TempState = {
+export type JunkState = {
 	name: string;
 }
 
 @Consumer
-export class Temp extends Component<TempProps, TempState> {
-	state: TempState = {
+export class Junk extends Component<JunkProps, JunkState> {
+	state: JunkState = {
 		name: null,
 	};
 
@@ -33,9 +33,10 @@ export class Temp extends Component<TempProps, TempState> {
 
 	render() {
 		return <div>
-			<button onClick={this.search.sayHello}>click</button>
+			<button onClick={this.home.sayHello}>click</button>
 			{this.search.name}
-			<Link to="/test/">test</Link>
+			<Link to="/aryan/">aryan</Link>
+			<button onClick={()=>this.home.goto('/aryan/')}>goto</button>
 		</div>;
 	}
 }

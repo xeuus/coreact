@@ -8,3 +8,6 @@ example-bundle
 example-dist
 node_modules
 webpack.config.js
+postcss.config.js
+tsconfig.json
+tsconfig-example.json

@@ -5,6 +5,6 @@ export function Observable<T>() {
 			value: null,
 			configurable: false,
 			enumerable: false
-		})
-	}
+		});
+	};
 }
