@@ -32,7 +32,7 @@ export class ConnectedRouter extends Component<ConnectedRouterProps> {
 	unsubscribe: any = null;
 	inTimeTravelling: boolean = false;
 
-	@Inject(Routing)
+	@Inject('Routing')
 	routing: Routing;
 
 	constructor(props: ConnectedRouterProps) {

@@ -18,8 +18,6 @@ export class BaseService implements ServiceProtocol {
 	}
 
 	mount() {
-		console.log(this.context);
-
 	}
 
 	unmount() {

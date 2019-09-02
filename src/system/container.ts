@@ -13,13 +13,13 @@ export const container = {
 			return;
 		}
 		const id = name;
+		container.services[id] = Service;
 		Object.defineProperty(Service, '__identifier__', {
 			value: id,
 			configurable: false,
 			enumerable: false,
 			writable: false,
 		});
-
 		Object.defineProperty(Service.prototype, '__identifier__', {
 			value: id,
 			configurable: false,
@@ -32,7 +32,12 @@ export const container = {
 			enumerable: false,
 			writable: false,
 		});
-		container.services[id] = Service;
+		Object.defineProperty(Service.prototype, '__serviceType__', {
+			value: serviceType,
+			configurable: false,
+			enumerable: true,
+			writable: false,
+		});
 	},
 	instantiateRequestServices(context: RequestContext) {
 		Object.keys(this.services).forEach((key: any) => {

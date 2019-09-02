@@ -3,6 +3,7 @@ import { Consumer, Inject } from '../../src';
 import { Route, Switch } from 'react-router';
 import { Temp } from './temp';
 import { Routing } from '../../src/router';
+import { Junk } from './junk';
 
 
 export type AppProps = {
@@ -11,18 +12,14 @@ export type AppProps = {
 
 @Consumer
 export class App extends Component<AppProps> {
-	@Inject(Routing)
+	@Inject('Routing')
 	routing: Routing;
 
 	render() {
 		const { name } = this.props;
 		return <Switch>
 			<Route path="/aryan" component={Temp}/>
-			<Route path="/test" component={() => <div>
-				<button onClick={()=>{
-					this.routing.push('/aryan/')
-				}}>aryan</button>
-			</div>}/>
+			<Route path="/test" component={Junk}/>
 		</Switch>
 	}
 }

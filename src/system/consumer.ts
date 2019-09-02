@@ -78,8 +78,8 @@ export function Consumer<T extends typeof Component>(consumer: T) {
 		const originalWillUnmount = this.componentWillUnmount;
 		if (originalWillUnmount) {
 			this.componentWillUnmount = function (...args: any[]) {
-				unsubscribes.forEach(a => a());
 				unmounts.forEach(a => a.bind(this)());
+				unsubscribes.forEach(a => a());
 				return originalWillUnmount.apply(this, args as any);
 			};
 		}

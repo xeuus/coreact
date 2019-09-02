@@ -1,11 +1,26 @@
 import { BaseService, Inject, RequestContext, Service } from '../../../src';
 import { Search } from './search';
+import { Routing } from '../../../src/router';
 
 @Service('Home')
 export class Home extends BaseService {
-	search:Search = null;
-	constructor(context: RequestContext) {
-		super(context);
-		this.search = new Search(context);
+	
+	@Inject('Search')
+	search: Search = null;
+
+	@Inject('Routing')
+	routing: Routing = null;
+
+	fun= ()=>{
+		console.log('fun');
 	}
+		
+	goto = (path: string)=>{
+		this.routing.push(path)
+	}
+
+	sayHello = () => {
+		this.search.sayHello();
+	}
+
 }

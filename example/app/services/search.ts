@@ -1,7 +1,13 @@
-import { BaseService, Observable, RequestContext, Service } from '../../../src';
+import { BaseService, Observable, RequestContext, Service, Inject } from '../../../src';
+import { Home } from './home';
 
 @Service('Search')
 export class Search extends BaseService {
+
+
+	@Inject('Home')
+	search: Home = null;
+
 	@Observable()
 	index: number = 0;
 

@@ -7,6 +7,7 @@ import { Bus } from './bus';
 export function Service<T extends typeof BaseService>(name: string, type: ServiceType = 'request') {
 	return (service: T) => {
 		const original = service;
+		
 		const f: any = function (...args: any[]) {
 			const context = args[0] as RequestContext;
 			const id = this.__identifier__;
@@ -108,8 +109,8 @@ export function Service<T extends typeof BaseService>(name: string, type: Servic
 
 			const originalUnmount = this.unmount;
 			this.unmount = function (...args: any[]) {
-				unsubscribes.forEach(a => a());
 				unmounts.forEach(a => a.bind(this)());
+				unsubscribes.forEach(a => a());
 				return originalUnmount.apply(this, args as any);
 			};
 

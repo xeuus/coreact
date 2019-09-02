@@ -16,10 +16,9 @@ export class Bus {
 				found.push(listener);
 			});
 		}
-		const index = found.length - 1;
 		return () => {
 			this.mutex.dispatch(async () => {
-				found.splice(index, 1);
+				found.splice(found.indexOf(listener), 1);
 			});
 		};
 	}
