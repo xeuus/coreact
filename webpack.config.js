@@ -10,6 +10,6 @@ const instance = new Webpack({
 	},
 	gzip: true,
 	path: path.resolve(__dirname, './example-bundle'),
-	publicPath: '/dist',
+	publicPath: '/dist/',
 });
 module.exports = instance.config();

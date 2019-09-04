@@ -1,1 +1,0 @@
-export type ServiceType = 'none' | 'singleton' | 'request' | 'prototype';

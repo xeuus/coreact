@@ -1,7 +1,8 @@
 import { ReactNode } from 'react';
-import { RequestContext } from './system';
+import { RequestContext } from './service';
 
 export class AppProvider {
+	context: RequestContext = null;
 	name: string = 'app';
 	splash: ReactNode = null;
 	application: ReactNode = null;
@@ -17,8 +18,16 @@ export class AppProvider {
 		this.endOfHead = null;
 		this.beginOfBody = null;
 		this.endOfBody = null;
+		this.context = context;
 	}
 
-	public prepare() {
+	async before() {
+	}
+	async client() {
+	}
+
+	async server() {
+	}
+	async after() {
 	}
 }

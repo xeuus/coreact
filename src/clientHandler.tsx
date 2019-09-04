@@ -2,24 +2,24 @@ import React from 'react';
 import { hydrate, render } from 'react-dom';
 import { AppProvider } from './appProvider';
 import { ViewHolder } from './helpers/viewHolder';
-import { container } from './system/container';
-import { AppContextProvider } from './system/appContext';
-import { RequestContext } from './system';
-import { baseUrl } from './helpers/viewState';
+import { RequestContext, registerServices, ContextProvider, extractData, restoreData, fetchAll } from './service';
+import { baseUrl, dateTime } from './helpers/viewState';
 import {createBrowserHistory} from 'history';
-import { ConnectedRouter } from './router';
+import { ConnectedRouter } from './routing';
 
 export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 	const context: RequestContext = {
+		baseUrl,
+		dateTime: new Date(dateTime),
 		url: window.location.pathname + window.location.search,
-		services: {},
-		observers: {},
+		services: [],
+		environment: 'client',
+		
 	};
-	container.instantiateRequestServices(context);
-	Object.seal(context);
+	registerServices(context);
+	Object.freeze(context);
 
 	const p = new provider(context);
-	p.prepare();
 	const element = document.getElementById(p.name);
 
 	const history = createBrowserHistory({
@@ -27,14 +27,17 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 	});
 	const app = <ViewHolder
 		process={async () => {
-			container.restoreData(context);
-			await container.fetchData(context);
+			restoreData(context);
+			await p.before();
+			await fetchAll(context);
+			await p.client();
+			await p.after();
 		}}>{
-		() => <AppContextProvider value={context}>
+		() => <ContextProvider context={context}>
 			<ConnectedRouter history={history}>
 				{p.application}
 			</ConnectedRouter>
-		</AppContextProvider>
+		</ContextProvider>
 	}</ViewHolder>;
 	if (process.env.NODE_ENV === 'production') {
 		hydrate(app, element);

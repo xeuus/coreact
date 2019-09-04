@@ -1,6 +1,5 @@
 import express from 'express';
 import { serverHandler } from '../src/serverHandler';
-import { Provider } from './provider';
 
 const path = require('path');
 const app = express();
@@ -8,17 +7,18 @@ const app = express();
 const webpackOptions = require('../../webpack.config.js');
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-
 serverHandler(app, {
-	provider: Provider,
-	matches: ['/*'],
+	provider: path.resolve(__dirname, './provider'),
+	match: '/*',
 	assets: isDevelopment ? [
-		'/example.js?324!defer',
+		'/dist/example.js?324!defer',
 	] : [
-		'/example.js!defer',
-		'/example.css',
-	],
+			'/dist/example.js!defer',
+			'/dist/example.css',
+		],
+	proxy: 'http://192.168.88.52/mag',
 	gzip: true,
+	root: path.resolve(__dirname, '..'),
 	publicDir: ['/assets', path.resolve(__dirname, '../../example-assets')],
 	bundleDir: ['/dist', path.resolve(__dirname, '../../example-bundle')],
 	webpackOptions,

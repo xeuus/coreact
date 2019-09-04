@@ -1,42 +1,63 @@
 import React, { Component } from 'react';
-import { BaseService, Consumer, Inject, Observable, Observer, RequestContext, Service } from './system';
 import { Router } from 'react-router';
-import { Action, History, Location } from 'history/';
+import { Action, History, Location } from 'history';
+import { match } from './helpers/match';
+import { service, observable, consumer, inject, binder, observe } from './service';
 
 
 export type RoutingState = {
 	location: Location; action: Action; isFirstRendering: boolean;
 }
 
-@Service('Routing')
-export class Routing extends BaseService {
-	history: History;
-
-	@Observable()
-	state: RoutingState;
-
-	constructor(context: RequestContext) {
-		super(context);
-	}
-	push = (path: string) => {
-		this.history.push(path);
-	};
-}
-
 export type ConnectedRouterProps = {
 	history: History;
 }
 
-@Consumer
+@service
+export class Routing {
+	@observable
+	state: RoutingState;
+	history: History;
+
+	get href() {
+		return this.state.location.pathname + this.state.location.search;
+	}
+	set href(path: string){
+		this.history.push(path);
+	}
+
+	get pathname() {
+		return this.state.location.pathname;
+	}
+	get search() {
+		return this.state.location.search;
+	}
+	get hash() {
+		return this.state.location.hash;
+	}
+	get key() {
+		return this.state.location.key;
+	}
+
+	match = (pattern: string, options: { exact?: boolean, sensitive?: boolean, strict?: boolean } = {}) => {
+		const { exact = true, sensitive = false, strict = false } = options;
+		return match(this.href, {
+			exact, sensitive, strict,
+			path: pattern,
+		})
+	}
+}
+
+
+@consumer
 export class ConnectedRouter extends Component<ConnectedRouterProps> {
 	unsubscribe: any = null;
 	inTimeTravelling: boolean = false;
 
-	@Inject('Routing')
-	routing: Routing;
+	@inject routing = binder.bind(this)(Routing)
 
-	constructor(props: ConnectedRouterProps) {
-		super(props);
+	constructor(props: ConnectedRouterProps, context: any) {
+		super(props, context);
 		const { history } = props;
 		this.routing.history = history;
 		const handleLocationChange = (location: Location, action: Action, isFirstRendering = false) => {
@@ -58,9 +79,9 @@ export class ConnectedRouter extends Component<ConnectedRouterProps> {
 		this.unsubscribe && this.unsubscribe();
 	}
 
-	@Observer(Routing, 'state')
-	observer() {
-		const {history} = this.props;
+	@observe(Routing)
+	observer = () => {
+		const { history } = this.props;
 		const {
 			pathname: pathnameInStore,
 			search: searchInStore,

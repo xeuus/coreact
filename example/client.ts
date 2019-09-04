@@ -1,4 +1,5 @@
-import { Provider } from './provider';
-import { clientHandler } from '../src';
 
-module.hot && module.hot.accept(clientHandler(Provider));
+import { clientHandler } from '../src';
+import Provider from './provider';
+const app = clientHandler(Provider)
+module.hot && module.hot.accept(app);
