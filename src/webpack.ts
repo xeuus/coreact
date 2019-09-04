@@ -118,10 +118,10 @@ export default class Webpack {
 			plugins: isDevelopment ? [
 				new webpack.HotModuleReplacementPlugin(),
 			] : [
-					gzip && new CompressionPlugin({
+					...(gzip ? [new CompressionPlugin({
 						test: /(\.js)$/,
 						deleteOriginalAssets: true,
-					}),
+					})] : []),
 					new OptimizeCSSAssetsPlugin(),
 					new MiniCssExtractPlugin({
 						filename: '[name].css',
