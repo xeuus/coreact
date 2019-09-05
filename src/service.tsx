@@ -34,7 +34,7 @@ export const extractData = (context: RequestContext) => {
 	return context.services.reduce((acc, service) => {
 		const { id, saved = [] } = metadataOf(service);
 		if (saved.length > 0) {
-			acc[id] = saved.reduce((acc, { key }) => {
+			acc[id] = saved.reduce((acc: any, { key }) => {
 				acc[key] = service[key];
 				return acc;
 			}, {});
@@ -49,25 +49,34 @@ export const restoreData = (context: RequestContext) => {
 		const { id, saved = [] } = metadataOf(service);
 		if (saved.length > 0) {
 			const data = clientRead(`bridge${id}`);
-			if(data){
+			if (data) {
 				const json = JSON.parse(data);
 				const keys = Object.keys(json);
-				keys.forEach(key=>{
+				keys.forEach(key => {
 					service[key] = json[key];
+					metadata(service[key], {
+						restored: true,
+					})
 				});
-				metadata(service, {
-					fetched: true,
-				})
 			}
 		}
 	});
 }
 export const fetchAll = async (context: RequestContext) => {
-	const services = context.services.filter(service => {
-		const {fetched = false} = metadataOf(service);
-		return !fetched && service.fetch;
-	});
-	return await Promise.all(services.map(service => service.fetch(context)))
+	const services = context.services.reduce((acc, service) => {
+		const { fetch = [] } = metadataOf(service);
+
+		fetch.forEach(({key, func})=>{
+			const {restored} = service[key]
+			acc.push(func);
+			metadata(service[key], {
+				fetched: true,
+			})
+		})
+
+		return acc;
+	}, []);
+	return await Promise.all(services.map((service: any) => service.fetch(context)))
 }
 
 
@@ -198,6 +207,24 @@ export function save(target: any, key: string) {
 }
 
 
+
+
+
+export function fetch(func: (context: RequestContext) => Promise<any>) {
+	return (target: any, key: string) => {
+		const { fetch = [] } = metadataOf(target);
+		metadata(target, {
+			fetch: [...fetch, {
+				key,
+				func,
+			}]
+		});
+	}
+}
+
+
+
+
 export function inject<T>(target: any, key: string) {
 	const { services = [] } = metadataOf(target);
 	metadata(target, {
@@ -206,6 +233,8 @@ export function inject<T>(target: any, key: string) {
 		}]
 	});
 }
+
+
 export function observable(target: any, key: string) {
 	const { observables = [] } = metadataOf(target);
 	metadata(target, {

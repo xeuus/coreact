@@ -7,7 +7,7 @@
     "declaration": false,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "esModuleInterop": true,
     "downlevelIteration": true,
     "emitDecoratorMetadata": true,
