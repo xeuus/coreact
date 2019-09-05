@@ -40,6 +40,7 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 			</ConnectedRouter>
 		</ContextProvider>
 	}</ViewHolder>;
+
 	if (process.env.NODE_ENV === 'production') {
 		hydrate(app, element);
 		return () => null;

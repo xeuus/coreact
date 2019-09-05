@@ -58,15 +58,15 @@ export const restoreDataOnClientSide = (context: RequestContext) => {
 			const json = JSON.parse(data);
 			save.forEach((data: any) => {
 				const { key } = data;
-				if(json[key]) {
+				if (json[key]) {
 					service[key] = json[key];
 				}
 			});
 			fetch.forEach((data: any) => {
 				const { key } = data;
-				if(json[key]) {
+				if (json[key]) {
 					service[key] = json[key];
-					const {fetched = []} = metadataOf(service)
+					const { fetched = [] } = metadataOf(service);
 					metadata(service, {
 						fetched: [...fetched, {
 							key,
@@ -84,16 +84,13 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
 		fetch.forEach((data: any) => {
 			const { key, func } = data;
 			const { fetched = [] } = metadataOf(service);
-			const newFunc = async ()=> {
-				const result = await (func.bind(service))(context)
-				Object.defineProperty(service, key, {
-					writable: false,
-					enumerable: true,
-					configurable: true,
-					value: result,
-				});
-			}
-			if (fetched.indexOf(key) < 0) {
+			const newFunc = async () => {
+				const value = await (func.bind(service))(context);;
+				if(typeof value !== 'undefined'){
+					service[key] = value;
+				}
+			};
+			if (fetched.findIndex((a: any) => a.key === key) < 0) {
 				acc.push(newFunc());
 			}
 		});
@@ -145,20 +142,20 @@ export function service(target: any) {
 		observables.forEach((data: any) => {
 			const { key } = data;
 			Object.defineProperty(this, '$' + key, {
-				configurable: false,
+				configurable: true,
 				writable: true,
 				enumerable: false,
 				value: this[key],
 			});
 			Object.defineProperty(this, key, {
-				configurable: false,
+				configurable: true,
 				enumerable: true,
 				get: () => {
 					return this['$' + key];
 				},
 				set: (value: any) => {
 					Object.defineProperty(this, '$' + key, {
-						configurable: false,
+						configurable: true,
 						writable: true,
 						enumerable: false,
 						value: value,
@@ -282,7 +279,7 @@ export function registerServices(context: RequestContext) {
 	context.services.forEach((service: any) => {
 		Object.defineProperty(service, 'context', {
 			value: context,
-			configurable: false,
+			configurable: true,
 			enumerable: false,
 			writable: false,
 		});

@@ -8,7 +8,7 @@ const instance = new Webpack({
 			'./example/app.scss'
 		]
 	},
-	gzip: true,
+	enableGzip: true,
 	path: path.resolve(__dirname, './example-bundle'),
 	publicPath: '/dist/',
 });

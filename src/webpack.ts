@@ -4,7 +4,7 @@ const Module = require('module');
 export type WebpackConfigOptions = {
 	entries: { [key: string]: string[] },
 	mode: 'production' | 'development',
-	gzip: boolean;
+	enableGzip: boolean;
 	path: string;
 	publicPath: string;
 }
@@ -40,8 +40,8 @@ export default class Webpack {
 		const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 		const TerserPlugin = require('terser-webpack-plugin');
 
-		const { gzip, path, publicPath, entries, mode } = this.options;
-		const CompressionPlugin = gzip && require('compression-webpack-plugin');
+		const { enableGzip, path, publicPath, entries, mode } = this.options;
+		const CompressionPlugin = enableGzip && require('compression-webpack-plugin');
 		const isDevelopment = mode === 'development';
 
 		return {
@@ -118,7 +118,7 @@ export default class Webpack {
 			plugins: isDevelopment ? [
 				new webpack.HotModuleReplacementPlugin(),
 			] : [
-					...(gzip ? [new CompressionPlugin({
+					...(enableGzip ? [new CompressionPlugin({
 						test: /(\.js)$/,
 						deleteOriginalAssets: true,
 					})] : []),

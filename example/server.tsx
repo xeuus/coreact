@@ -17,7 +17,7 @@ serverHandler(app, {
 			'/dist/example.css',
 		],
 	proxy: 'http://192.168.88.52/mag',
-	gzip: true,
+	enableGzip: true,
 	root: path.resolve(__dirname, '..'),
 	publicDir: ['/assets', path.resolve(__dirname, '../../example-assets')],
 	bundleDir: ['/dist', path.resolve(__dirname, '../../example-bundle')],

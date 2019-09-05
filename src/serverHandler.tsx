@@ -7,13 +7,13 @@ import { wrapHtml } from './helpers/wrapHtml';
 import { StaticRouter } from 'react-router';
 import httpProxy from 'http-proxy';
 import { register } from './webpack';
-import { RequestContext, registerServices, ContextProvider, gatherAsyncProperties, extractDataOnServerSide } from './service';
+import { ContextProvider, extractDataOnServerSide, gatherAsyncProperties, registerServices, RequestContext } from './service';
 import { ServerPortal } from './helpers/serverPortal';
 
 export type ServerHandlerOptions = {
 	match: string;
 	assets: string[];
-	gzip?: boolean;
+	enableGzip?: boolean;
 	webpackOptions: any;
 	proxy?: string;
 	apiPrefix?: string;
@@ -23,7 +23,7 @@ export type ServerHandlerOptions = {
 	provider: string;
 }
 export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
-	const { match, apiPrefix = '/api', proxy, root, assets, gzip, webpackOptions, provider, publicDir, bundleDir } = options;
+	const { match, apiPrefix = '/api', proxy, root, assets, enableGzip, webpackOptions, provider, publicDir, bundleDir } = options;
 	const isDevelopment = process.env.NODE_ENV === 'development';
 
 
@@ -57,8 +57,8 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 			return proxyServer.proxyRequest(req, res, {
 				changeOrigin: true,
 				target: proxy,
-			})
-		})
+			});
+		});
 	}
 
 
@@ -74,11 +74,12 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 			});
 			return acc;
 		}, {});
-		webpackOptions.output.publicPath = bundleUri + '/';
 		const compiler = webpack(webpackOptions);
 		app.use(require('webpack-dev-middleware')(compiler, {
 			noInfo: true,
-			publicPath: bundleUri + '/',
+			hot: true,
+			stats: 'errors-only',
+			publicPath:  webpackOptions.output.publicPath,
 		}));
 		app.use(require('webpack-hot-middleware')(compiler, {
 			log: console.log,
@@ -88,11 +89,14 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 	}
 
 
-	app.use(publicUri, express.static(publicDir[1]));
+	function notFound(req: Request, res: Response) {
+		res.statusCode = 404;
+		res.end();
+	}
+	app.use(publicUri, express.static(publicDir[1]), notFound);
 
-	if (gzip && !isDevelopment) {
-
-		app.get(new RegExp(`^(${bundleUri}).+(.js\?|.js$)`), (req, res, next) => {
+	if (enableGzip && !isDevelopment) {
+		app.get(new RegExp(`^(${bundleUri}).+(.js\\?|.js$)`), (req, res, next) => {
 			const spl = req.url.split('?');
 			req.url = spl.length > 1 ? spl.join('.gz?') : `${spl[0]}.gz`;
 			res.set('Content-Encoding', 'gzip');
@@ -101,7 +105,8 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 		});
 	}
 
-	app.use(bundleUri, express.static(bundleDir[1]));
+	app.use(bundleUri, express.static(bundleDir[1]), notFound);
+
 
 	app.get(match, (req: Request, res: Response, next) => {
 		if (!req.path.startsWith(api) && req.path.substr(-1) !== '/') {
@@ -140,10 +145,10 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 						id={p.name}
 						beginHead={<Fragment>
 							{p.beginOfHead}
-							<meta id="app-view-state" name="view-state" content={saltKey} />
-							<meta id="app-token" name="token" content={randomString(10)} />
-							<meta id="app-date-time" name="date-time" content={iso} />
-							<meta id="app-base-url" name="base-url" content={baseUrl} />
+							<meta id="app-view-state" name="view-state" content={saltKey}/>
+							<meta id="app-token" name="token" content={randomString(10)}/>
+							<meta id="app-date-time" name="date-time" content={iso}/>
+							<meta id="app-base-url" name="base-url" content={baseUrl}/>
 						</Fragment>}
 						endHead={<Fragment>
 							{assets.map((asset, i) => {
@@ -151,9 +156,9 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 								const uri = file.startsWith('/') ? (baseUrl + file) : file;
 								const [name] = file.split('?');
 								if (name.substr(-2) === 'js') {
-									return <script key={i} src={uri} defer={spl.includes('defer')} />;
+									return <script key={i} src={uri} defer={spl.includes('defer')}/>;
 								} else if (name.substr(-3) === 'css') {
-									return <link key={i} href={uri} rel="stylesheet" />;
+									return <link key={i} href={uri} rel="stylesheet"/>;
 								}
 							})}
 							{p.endOfHead}
@@ -169,11 +174,11 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 									key={key}
 									cipher={cipher}
 									data={JSON.stringify(data[key])}
-								/>
+								/>;
 							})}
 						</Fragment>}
 					>
-						{!isDevelopment && p.application}
+					{!isDevelopment && p.application}
 					</Html>
 				</StaticRouter>
 			</ContextProvider>
