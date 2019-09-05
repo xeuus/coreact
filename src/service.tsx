@@ -1,4 +1,3 @@
-
 import React, { createContext, ReactNode } from 'react';
 import { clientRead } from './helpers/clientRead';
 
@@ -21,64 +20,87 @@ export class EventBus {
 	listeners: Listener[] = [];
 	dispatch = (...args: any[]) => {
 		this.listeners.forEach(listener => listener(...args));
-	}
+	};
 	listen = (listener: Listener): Unsubscribe => {
 		this.listeners.push(listener);
 		return () => {
 			this.listeners.splice(this.listeners.indexOf(listener), 1);
-		}
-	}
+		};
+	};
 }
 
-export const extractData = (context: RequestContext) => {
+export const extractDataOnServerSide = (context: RequestContext) => {
 	return context.services.reduce((acc, service) => {
-		const { id, saved = [] } = metadataOf(service);
-		if (saved.length > 0) {
-			acc[id] = saved.reduce((acc: any, { key }) => {
-				acc[key] = service[key];
-				return acc;
-			}, {});
+		const { id, save = [], fetch = [] } = metadataOf(service);
+		acc[id] = acc[id] || {};
+		if (save.length > 0) {
+			save.forEach((data: any) => {
+				const { key } = data;
+				acc[id][key] = service[key];
+			});
+		}
+		if (fetch.length > 0) {
+			fetch.forEach((data: any) => {
+				const { key } = data;
+				acc[id][key] = service[key];
+			});
 		}
 		return acc;
 	}, {});
-}
+};
 
 
-export const restoreData = (context: RequestContext) => {
-	return context.services.forEach((service) => {
-		const { id, saved = [] } = metadataOf(service);
-		if (saved.length > 0) {
-			const data = clientRead(`bridge${id}`);
-			if (data) {
-				const json = JSON.parse(data);
-				const keys = Object.keys(json);
-				keys.forEach(key => {
+export const restoreDataOnClientSide = (context: RequestContext) => {
+	context.services.forEach((service) => {
+		const { id, save = [], fetch = [] } = metadataOf(service);
+		const data = clientRead(`bridge${id}`);
+		if (data) {
+			const json = JSON.parse(data);
+			save.forEach((data: any) => {
+				const { key } = data;
+				if(json[key]) {
 					service[key] = json[key];
-					metadata(service[key], {
-						restored: true,
-					})
-				});
-			}
+				}
+			});
+			fetch.forEach((data: any) => {
+				const { key } = data;
+				if(json[key]) {
+					service[key] = json[key];
+					const {fetched = []} = metadataOf(service)
+					metadata(service, {
+						fetched: [...fetched, {
+							key,
+						}],
+					});
+				}
+			});
 		}
 	});
-}
-export const fetchAll = async (context: RequestContext) => {
-	const services = context.services.reduce((acc, service) => {
+};
+
+export const gatherAsyncProperties = async (context: RequestContext) => {
+	const pm = context.services.reduce((acc, service) => {
 		const { fetch = [] } = metadataOf(service);
-
-		fetch.forEach(({key, func})=>{
-			const {restored} = service[key]
-			acc.push(func);
-			metadata(service[key], {
-				fetched: true,
-			})
-		})
-
+		fetch.forEach((data: any) => {
+			const { key, func } = data;
+			const { fetched = [] } = metadataOf(service);
+			const newFunc = async ()=> {
+				const result = await (func.bind(service))(context)
+				Object.defineProperty(service, key, {
+					writable: false,
+					enumerable: true,
+					configurable: true,
+					value: result,
+				});
+			}
+			if (fetched.indexOf(key) < 0) {
+				acc.push(newFunc());
+			}
+		});
 		return acc;
 	}, []);
-	return await Promise.all(services.map((service: any) => service.fetch(context)))
-}
-
+	return await Promise.all(pm);
+};
 
 const context = createContext<RequestContext>({
 	baseUrl: '',
@@ -113,13 +135,15 @@ export function service(target: any) {
 		const { observables = [], observers = [] } = metadataOf(target.prototype);
 
 		const component = this;
-		observers.forEach(({ key, observer }) => {
+		observers.forEach((data: any) => {
+			const { key, observer } = data;
 			observer.listen(function () {
 				component[key].apply(this, arguments);
 			});
 		});
 
-		observables.forEach(({ key }) => {
+		observables.forEach((data: any) => {
+			const { key } = data;
 			Object.defineProperty(this, '$' + key, {
 				configurable: false,
 				writable: true,
@@ -139,17 +163,17 @@ export function service(target: any) {
 						enumerable: false,
 						value: value,
 					});
-					observer.dispatch(key, value, id)
+					observer.dispatch(key, value, id);
 				}
 			});
 		});
 
-		return
-	}
+		return;
+	};
 	func.prototype = original.prototype;
 	const id = counter++;
 	services[id] = func;
-	metadata(func.prototype, { id, observer: new EventBus() })
+	metadata(func.prototype, { id, observer: new EventBus() });
 	return func as any;
 }
 
@@ -162,28 +186,27 @@ export function consumer(target: any) {
 		const release: any[] = [];
 		const originalDidMount = this.componentDidMount;
 		if (originalDidMount) {
-			const func = function () {
-				observers.forEach(({ key, observer }) => {
+			this.componentDidMount = function () {
+				observers.forEach((data: any) => {
+					const { key, observer } = data;
 					release.push(observer.listen(function () {
 						component[key].apply(this, arguments);
 					}));
 				});
 				return originalDidMount.apply(this, arguments);
-			}
-			this.componentDidMount = func;
+			};
 		}
 
 		const originalUnmount = this.componentWillUnmount;
 		if (originalUnmount) {
-			const func = function () {
+			this.componentWillUnmount = function () {
 				release.forEach(func => func());
 				return originalUnmount.apply(this, arguments);
-			}
-			this.componentWillUnmount = func;
+			};
 		}
 
 		return original.apply(this, arguments);
-	}
+	};
 	func.contextType = context;
 	func.prototype = original.prototype;
 	return func as any;
@@ -196,19 +219,14 @@ export function binder<T>(type: { new(): T }): T {
 }
 
 
-
 export function save(target: any, key: string) {
-	const { saved = [] } = metadataOf(target);
+	const { save = [] } = metadataOf(target);
 	metadata(target, {
-		saved: [...saved, {
+		save: [...save, {
 			key,
 		}]
 	});
 }
-
-
-
-
 
 export function fetch(func: (context: RequestContext) => Promise<any>) {
 	return (target: any, key: string) => {
@@ -219,11 +237,8 @@ export function fetch(func: (context: RequestContext) => Promise<any>) {
 				func,
 			}]
 		});
-	}
+	};
 }
-
-
-
 
 export function inject<T>(target: any, key: string) {
 	const { services = [] } = metadataOf(target);
@@ -253,13 +268,13 @@ export function observe<T>(type: { new(): T }) {
 				key, observer,
 			}]
 		});
-	}
+	};
 }
 
 export function ContextProvider(props: { context: RequestContext; children: ReactNode }) {
 	return <context.Provider value={props.context}>
 		{props.children}
-	</context.Provider>
+	</context.Provider>;
 }
 
 export function registerServices(context: RequestContext) {
@@ -270,7 +285,7 @@ export function registerServices(context: RequestContext) {
 			configurable: false,
 			enumerable: false,
 			writable: false,
-		})
+		});
 		service.constructor.apply(service);
 	});
 }

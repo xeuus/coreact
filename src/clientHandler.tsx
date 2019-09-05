@@ -2,7 +2,7 @@ import React from 'react';
 import { hydrate, render } from 'react-dom';
 import { AppProvider } from './appProvider';
 import { ViewHolder } from './helpers/viewHolder';
-import { RequestContext, registerServices, ContextProvider, extractData, restoreData, fetchAll } from './service';
+import { RequestContext, registerServices, ContextProvider, restoreDataOnClientSide, gatherAsyncProperties } from './service';
 import { baseUrl, dateTime } from './helpers/viewState';
 import {createBrowserHistory} from 'history';
 import { ConnectedRouter } from './routing';
@@ -27,9 +27,10 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 	});
 	const app = <ViewHolder
 		process={async () => {
-			restoreData(context);
+			restoreDataOnClientSide(context);
+
 			await p.before();
-			await fetchAll(context);
+			await gatherAsyncProperties(context);
 			await p.client();
 			await p.after();
 		}}>{

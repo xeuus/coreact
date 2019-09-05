@@ -7,7 +7,7 @@ import { wrapHtml } from './helpers/wrapHtml';
 import { StaticRouter } from 'react-router';
 import httpProxy from 'http-proxy';
 import { register } from './webpack';
-import { RequestContext, registerServices, ContextProvider, extractData, fetchAll } from './service';
+import { RequestContext, registerServices, ContextProvider, gatherAsyncProperties, extractDataOnServerSide } from './service';
 import { ServerPortal } from './helpers/serverPortal';
 
 export type ServerHandlerOptions = {
@@ -91,7 +91,8 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 	app.use(publicUri, express.static(publicDir[1]));
 
 	if (gzip && !isDevelopment) {
-		app.get(new RegExp(`^(${bundleUri}).+(\.js\?|\.js$)`), (req, res, next) => {
+
+		app.get(new RegExp(`^(${bundleUri}).+(.js\?|.js$)`), (req, res, next) => {
 			const spl = req.url.split('?');
 			req.url = spl.length > 1 ? spl.join('.gz?') : `${spl[0]}.gz`;
 			res.set('Content-Encoding', 'gzip');
@@ -119,18 +120,17 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 			baseUrl: baseUrl,
 			environment: 'server',
 		};
-		//container.instantiateRequestServices(context);
 		registerServices(context);
 
 		const p = new Provider(context);
 		await p.before();
-		await fetchAll(context);
+		await gatherAsyncProperties(context);
 		await p.server();
 		await p.after();
 		const saltKey = randomString(50);
 		const iso = now.toISOString();
 		const cipher = saltKey + iso;
-		const data = extractData(context);
+		const data = extractDataOnServerSide(context);
 		const keys = Object.keys(data);
 		const routerContext = {};
 		const html = renderToString(

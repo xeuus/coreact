@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Route, Switch } from 'react-router';
-import { observe, service, consumer, binder, save, observable, inject, fetch } from '../src';
+import { binder, consumer, fetch, inject, save, service } from '../src';
 
 export type AppProps = {
 	name: string;
@@ -8,11 +8,19 @@ export type AppProps = {
 
 @service
 export class Home {
-	@save @fetch(async (context) => 34)
+	@fetch(async function () {
+		return 34;
+	})
 	index: number = 0;
 
-	@save @fetch(async (context) => '23')
+	@fetch(async function () {
+		this.hello = 23;
+		return 'Aryan Nolan';
+	})
 	name: string = 'home';
+
+
+	@save hello: string = '234';
 }
 
 
@@ -22,8 +30,10 @@ export class Temp extends Component {
 		index: 0,
 	};
 	@inject home: Home = binder.bind(this)(Home);
+
 	render() {
 		return <div>
+			salam
 			<div>{this.home.index}</div>
 			<div>{this.home.name}</div>
 		</div>;
@@ -33,7 +43,7 @@ export class Temp extends Component {
 export class App extends Component<AppProps> {
 	render() {
 		return <Switch>
-			<Route path="/" component={Temp} />
-		</Switch>
+			<Route path="/" component={Temp}/>
+		</Switch>;
 	}
 }
