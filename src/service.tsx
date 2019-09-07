@@ -127,7 +127,9 @@ export function metadata(target: any, value: any) {
 export function service(target: any) {
 	const original = target;
 	const func = function () {
-		original.apply(this, arguments);
+		if(this.context)
+			return;
+
 		const { id, observer } = metadataOf(this);
 		const { observables = [], observers = [] } = metadataOf(target.prototype);
 
@@ -165,7 +167,7 @@ export function service(target: any) {
 			});
 		});
 
-		return;
+		return original.apply(this, arguments);
 	};
 	func.prototype = original.prototype;
 	const id = counter++;
@@ -182,25 +184,23 @@ export function consumer(target: any) {
 		const component = this;
 		const release: any[] = [];
 		const originalDidMount = this.componentDidMount;
-		if (originalDidMount) {
-			this.componentDidMount = function () {
-				observers.forEach((data: any) => {
-					const { key, observer } = data;
-					release.push(observer.listen(function () {
-						component[key].apply(this, arguments);
-					}));
-				});
-				return originalDidMount.apply(this, arguments);
-			};
-		}
+		this.componentDidMount = function () {
+			observers.forEach((data: any) => {
+				const { key, observer } = data;
+				release.push(observer.listen(function () {
+					component[key].apply(this, arguments);
+				}));
+			});
+			if(!originalDidMount) return;
+			return originalDidMount.apply(this, arguments);
+		};
 
 		const originalUnmount = this.componentWillUnmount;
-		if (originalUnmount) {
 			this.componentWillUnmount = function () {
 				release.forEach(func => func());
+				if(!originalUnmount) return;
 				return originalUnmount.apply(this, arguments);
 			};
-		}
 
 		return original.apply(this, arguments);
 	};
