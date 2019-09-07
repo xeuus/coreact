@@ -8,6 +8,7 @@ import { StaticRouter } from 'react-router';
 import httpProxy from 'http-proxy';
 import { ContextProvider, extractDataOnServerSide, gatherAsyncProperties, registerServices, RequestContext } from './service';
 import { ServerPortal } from './helpers/serverPortal';
+import { AppProvider } from './appProvider';
 
 export type ServerHandlerOptions = {
 	match: string;
@@ -18,7 +19,7 @@ export type ServerHandlerOptions = {
 	apiPrefix?: string;
 	publicDir?: [string, string];
 	bundleDir?: [string, string];
-	provider: string;
+	provider: typeof AppProvider;
 }
 export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 	const { match, apiPrefix = '/api', proxy, assets, enableGzip, webpackOptions, provider, publicDir, bundleDir } = options;
@@ -44,8 +45,6 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 	const bundleUri = baseUrl + bundleDir[0];
 	const publicUri = baseUrl + publicDir[0];
 
-
-	const Provider = require(provider).default;
 
 	const api = baseUrl + apiPrefix;
 	if (proxy) {
@@ -124,7 +123,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 		};
 		registerServices(context);
 
-		const p = new Provider(context);
+		const p = new provider(context);
 		await p.before();
 		await gatherAsyncProperties(context);
 		await p.server();
