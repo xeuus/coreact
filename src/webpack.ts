@@ -9,13 +9,14 @@ export type WebpackConfigOptions = {
 	publicPath: string;
 }
 
+
 export function register(root: string, baseUrl: string){
 	const originalRequire = Module.prototype.require;
 	Module.prototype.require = function(p: string){
 		if(['jpg', 'gif', 'bmp', 'png', 'svg'].indexOf(p.substr(-3)) > -1){
-			const pth = this.filename.toString().substr(root.length).split('/');
+			const pth = this.filename.toString().split('/');
 			pth.pop();
-			return baseUrl + path.resolve(pth.join('/'), p);
+			return baseUrl+path.resolve(pth.join('/'), p).substr(root.length);
 		}
 		return originalRequire.apply(this, arguments);
 	}
@@ -25,14 +26,13 @@ export function register(root: string, baseUrl: string){
 	}
 };
 
-
 export default class Webpack {
 	options: WebpackConfigOptions;
 
 	constructor(options: WebpackConfigOptions) {
 		this.options = options;
 	}
-	
+
 	config = () => {
 		const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 		const webpack = require('webpack');

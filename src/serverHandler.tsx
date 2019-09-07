@@ -6,7 +6,6 @@ import { randomString } from './helpers/random';
 import { wrapHtml } from './helpers/wrapHtml';
 import { StaticRouter } from 'react-router';
 import httpProxy from 'http-proxy';
-import { register } from './webpack';
 import { ContextProvider, extractDataOnServerSide, gatherAsyncProperties, registerServices, RequestContext } from './service';
 import { ServerPortal } from './helpers/serverPortal';
 
@@ -19,11 +18,10 @@ export type ServerHandlerOptions = {
 	apiPrefix?: string;
 	publicDir?: [string, string];
 	bundleDir?: [string, string];
-	root: string;
 	provider: string;
 }
 export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
-	const { match, apiPrefix = '/api', proxy, root, assets, enableGzip, webpackOptions, provider, publicDir, bundleDir } = options;
+	const { match, apiPrefix = '/api', proxy, assets, enableGzip, webpackOptions, provider, publicDir, bundleDir } = options;
 	const isDevelopment = process.env.NODE_ENV === 'development';
 
 
@@ -47,7 +45,6 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 	const publicUri = baseUrl + publicDir[0];
 
 
-	const reset = register(root, bundleUri);
 	const Provider = require(provider).default;
 
 	const api = baseUrl + apiPrefix;

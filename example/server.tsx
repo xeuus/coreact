@@ -1,5 +1,6 @@
 import express from 'express';
 import { serverHandler } from '../src/serverHandler';
+import { register } from '../src/webpack';
 
 const path = require('path');
 const app = express();
@@ -7,6 +8,8 @@ const app = express();
 const webpackOptions = require('../../webpack.config.js');
 const isDevelopment = process.env.NODE_ENV === 'development';
 
+
+register(path.resolve(__dirname, '..'), '/dist/example')
 serverHandler(app, {
 	provider: path.resolve(__dirname, './provider'),
 	match: '/*',
@@ -18,7 +21,6 @@ serverHandler(app, {
 		],
 	proxy: 'http://192.168.88.52/mag',
 	enableGzip: true,
-	root: path.resolve(__dirname, '..'),
 	publicDir: ['/assets', path.resolve(__dirname, '../../example-assets')],
 	bundleDir: ['/dist', path.resolve(__dirname, '../../example-bundle')],
 	webpackOptions,
