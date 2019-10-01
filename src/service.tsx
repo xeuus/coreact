@@ -136,7 +136,7 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
 			const { key, func } = data;
 			const { fetched = [] } = metadataOf(service);
 			const newFunc = async () => {
-				const value = await (func.bind(service))(context);;
+				const value = await (func.bind(service))(context);
 				if(typeof value !== 'undefined'){
 					service[key] = value;
 				}
@@ -145,6 +145,16 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
 				acc.push(newFunc());
 			}
 		});
+		return acc;
+	}, []);
+	return await Promise.all(pm);
+};
+
+export const gatherMethods = async (context: RequestContext, name: string) => {
+	const pm = context.services.reduce((acc, service) => {
+		if(service[name] ) {
+			acc.push(service[name]());
+		}
 		return acc;
 	}, []);
 	return await Promise.all(pm);

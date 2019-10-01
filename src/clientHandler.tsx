@@ -2,7 +2,16 @@ import React from 'react';
 import { hydrate, render } from 'react-dom';
 import { AppProvider } from './appProvider';
 import { ViewHolder } from './helpers/viewHolder';
-import { RequestContext, registerServices, ContextProvider, restoreDataOnClientSide, restorePersistedDataOnClientSide, registerPersistClient, gatherAsyncProperties } from './service';
+import {
+	RequestContext,
+	registerServices,
+	ContextProvider,
+	restoreDataOnClientSide,
+	restorePersistedDataOnClientSide,
+	registerPersistClient,
+	gatherAsyncProperties,
+	gatherMethods
+} from './service';
 import { baseUrl, dateTime } from './helpers/viewState';
 import {createBrowserHistory} from 'history';
 import { ConnectedRouter } from './routing';
@@ -66,11 +75,14 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 
 			await p.before();
 			context.storagePrefix = p.storagePrefix;
+
+			await gatherMethods(context, 'before');
 			registerPersistClient(context);
 			restorePersistedDataOnClientSide(context);
 			await gatherAsyncProperties(context);
 			await p.client();
 			await p.after();
+			await gatherMethods(context, 'after');
 		}}>{
 		() => <ContextProvider context={context}>
 			<ConnectedRouter history={history}>

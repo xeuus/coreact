@@ -6,7 +6,7 @@ import {randomString} from './helpers/random';
 import {wrapHtml} from './helpers/wrapHtml';
 import {StaticRouter} from 'react-router';
 import httpProxy from 'http-proxy';
-import {ContextProvider, extractDataOnServerSide, gatherAsyncProperties, registerServices, RequestContext} from './service';
+import {ContextProvider, extractDataOnServerSide, gatherAsyncProperties, gatherMethods, registerServices, RequestContext} from './service';
 import {ServerPortal} from './helpers/serverPortal';
 import {AppProvider} from './appProvider';
 
@@ -146,10 +146,13 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 		registerServices(context);
 
 		const p = new provider(context);
+
 		await p.before();
+		await gatherMethods(context, 'before');
 		await gatherAsyncProperties(context);
 		await p.server(req, res);
 		await p.after();
+		await gatherMethods(context, 'after');
 		const saltKey = randomString(50);
 		const iso = now.toISOString();
 		const cipher = saltKey + iso;
