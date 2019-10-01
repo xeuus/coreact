@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode } from 'react';
-import { clientRead } from './helpers/clientRead';
+import {clientDecrypt, clientEncrypt, clientRead} from './helpers/clientRead';
 
 let counter = 0;
 const services: any[] = [];
@@ -8,6 +8,7 @@ const services: any[] = [];
 export type RequestContext = {
 	url: string;
 	baseUrl: string;
+	storagePrefix?: string;
 	dateTime: Date;
 	services: any[];
 	environment: 'none' | 'server' | 'client';
@@ -49,6 +50,47 @@ export const extractDataOnServerSide = (context: RequestContext) => {
 	}, {});
 };
 
+
+
+export let persistChanges = () => {
+};
+
+export const registerPersistClient = (context: RequestContext) => {
+	persistChanges = ()=>{
+		context.services.forEach((service) => {
+			const {id, persist = []} = metadataOf(service);
+			if (persist.length > 0) {
+				const obj: any = {};
+				persist.forEach((data: any) => {
+					const {key} = data;
+					obj[key] = service[key];
+				});
+				const key = `${context.storagePrefix}_bridge${id}`;
+				const data = clientEncrypt(JSON.stringify(obj), key);
+				localStorage.setItem(key, data);
+			}
+		});
+	};
+	window.addEventListener('beforeunload', persistChanges)
+};
+export const restorePersistedDataOnClientSide = (context: RequestContext) => {
+	context.services.forEach((service) => {
+		const {id, persist = []} = metadataOf(service);
+		if (persist.length > 0) {
+			if (typeof window.localStorage != undefined) {
+				const key = `${context.storagePrefix}_bridge${id}`;
+				const content = clientDecrypt(localStorage.getItem(key), key);
+				const json = JSON.parse(content);
+				persist.forEach((data: any) => {
+					const {key} = data;
+					if (json[key]) {
+						service[key] = json[key];
+					}
+				});
+			}
+		}
+	});
+};
 
 export const restoreDataOnClientSide = (context: RequestContext) => {
 	context.services.forEach((service) => {
@@ -220,6 +262,15 @@ export function save(target: any, key: string) {
 	const { save = [] } = metadataOf(target);
 	metadata(target, {
 		save: [...save, {
+			key,
+		}]
+	});
+}
+
+export function persist(target: any, key: string) {
+	const { persist = [] } = metadataOf(target);
+	metadata(target, {
+		persist: [...persist, {
 			key,
 		}]
 	});

@@ -2,7 +2,7 @@ import React from 'react';
 import { hydrate, render } from 'react-dom';
 import { AppProvider } from './appProvider';
 import { ViewHolder } from './helpers/viewHolder';
-import { RequestContext, registerServices, ContextProvider, restoreDataOnClientSide, gatherAsyncProperties } from './service';
+import { RequestContext, registerServices, ContextProvider, restoreDataOnClientSide, restorePersistedDataOnClientSide, registerPersistClient, gatherAsyncProperties } from './service';
 import { baseUrl, dateTime } from './helpers/viewState';
 import {createBrowserHistory} from 'history';
 import { ConnectedRouter } from './routing';
@@ -14,12 +14,12 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 		url: window.location.pathname + window.location.search,
 		services: [],
 		environment: 'client',
-		
+
 	};
 	registerServices(context);
-	Object.freeze(context);
 
 	const p = new provider(context);
+
 	const element = document.getElementById(p.name);
 
 	const history = createBrowserHistory({
@@ -30,6 +30,9 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 			restoreDataOnClientSide(context);
 
 			await p.before();
+			context.storagePrefix = p.storagePrefix;
+			registerPersistClient(context);
+			restorePersistedDataOnClientSide(context);
 			await gatherAsyncProperties(context);
 			await p.client();
 			await p.after();

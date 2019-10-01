@@ -4,6 +4,7 @@ import { RequestContext } from './service';
 export class AppProvider {
 	context: RequestContext = null;
 	name: string = 'app';
+	storagePrefix?: string = 'service';
 	splash: ReactNode = null;
 	application: ReactNode = null;
 	beginOfHead: ReactNode = null;
@@ -25,8 +26,7 @@ export class AppProvider {
 	}
 	async client() {
 	}
-
-	async server() {
+	async server(req: any, res: any) {
 	}
 	async after() {
 	}

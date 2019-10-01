@@ -126,7 +126,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 		const p = new provider(context);
 		await p.before();
 		await gatherAsyncProperties(context);
-		await p.server();
+		await p.server(req, res);
 		await p.after();
 		const saltKey = randomString(50);
 		const iso = now.toISOString();
@@ -151,19 +151,14 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 								const [file, ...spl] = asset.split('!');
 								const uri = file.startsWith('/') ? (baseUrl + file) : file;
 								const [name] = file.split('?');
-								if (name.substr(-2) === 'js') {
-									return <script key={i} src={uri} defer={spl.includes('defer')}/>;
-								} else if (name.substr(-3) === 'css') {
+								if (name.substr(-3) === 'css') {
 									return <link key={i} href={uri} rel="stylesheet"/>;
 								}
 							})}
 							{p.endOfHead}
 						</Fragment>}
-						beginBody={<Fragment>
-							{p.beginOfBody}
-						</Fragment>}
+						beginBody={p.beginOfBody}
 						endBody={<Fragment>
-							{p.endOfBody}
 							{keys.map(key => {
 								return <ServerPortal
 									id={`bridge${key}`}
@@ -172,6 +167,15 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 									data={JSON.stringify(data[key])}
 								/>;
 							})}
+							{assets.map((asset, i) => {
+								const [file, ...spl] = asset.split('!');
+								const uri = file.startsWith('/') ? (baseUrl + file) : file;
+								const [name] = file.split('?');
+								if (name.substr(-2) === 'js') {
+									return <script key={i} src={uri}/>;
+								}
+							})}
+							{p.endOfBody}
 						</Fragment>}
 					>
 					{!isDevelopment && p.application}

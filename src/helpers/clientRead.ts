@@ -10,3 +10,11 @@ export const clientRead = (id: string) => {
 	}
 	return AES.decrypt(element.value, viewState + dateTime).toString(enc);
 };
+
+export const clientEncrypt = (content: string, key: string) => {
+	return AES.encrypt(content, key).toString();
+};
+
+export const clientDecrypt = (content: string, key: string) => {
+	return AES.decrypt(content, key).toString(enc);
+};
