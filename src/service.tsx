@@ -11,7 +11,7 @@ export type RequestContext = {
 	body?: any;
 	query?: any;
 	hostname?: string;
-	cookies?: string;
+	cookies?: any;
 	protocol?: string;
 	headers?: any;
 
