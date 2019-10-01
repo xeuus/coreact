@@ -6,6 +6,7 @@ import { RequestContext, registerServices, ContextProvider, restoreDataOnClientS
 import { baseUrl, dateTime } from './helpers/viewState';
 import {createBrowserHistory} from 'history';
 import { ConnectedRouter } from './routing';
+import { UserAgent } from 'express-useragent';
 
 export function parseQuery(queryString: string) {
 	const query: any = {};
@@ -42,6 +43,7 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 		cookies: parseCookie(window.document.cookie),
 		protocol: proto,
 		headers: {},
+		useragent: new UserAgent().parse(window.navigator.userAgent),
 
 		baseUrl,
 		dateTime: new Date(dateTime),

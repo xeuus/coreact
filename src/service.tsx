@@ -14,6 +14,7 @@ export type RequestContext = {
 	cookies?: any;
 	protocol?: string;
 	headers?: any;
+	useragent?: any;
 
 	baseUrl: string;
 	storagePrefix?: string;

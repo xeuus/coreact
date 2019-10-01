@@ -21,14 +21,14 @@ serverHandler(app, {
 			'/dist/example.js!defer',
 			'/dist/example.css',
 		],
-	proxy: 'http://192.168.88.52/mag',
+	proxy: 'http://localhost:5000/api',
 	enableGzip: true,
 	publicDir: ['/assets', path.resolve(__dirname, '../../example-assets')],
 	bundleDir: ['/dist', path.resolve(__dirname, '../../example-bundle')],
 	webpackOptions,
 });
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 4200;
 app.listen(port, () => console.log(`Listening on port ${port}`));
 
 process.on('uncaughtException', (err) => {

@@ -1,15 +1,17 @@
-import React, { Fragment } from 'react';
-import express, { Express, Request, Response } from 'express';
-import { renderToString } from 'react-dom/server';
-import { Html } from './helpers/html';
-import { randomString } from './helpers/random';
-import { wrapHtml } from './helpers/wrapHtml';
-import { StaticRouter } from 'react-router';
+import React, {Fragment} from 'react';
+import express, {Express, Request, Response} from 'express';
+import {renderToString} from 'react-dom/server';
+import {Html} from './helpers/html';
+import {randomString} from './helpers/random';
+import {wrapHtml} from './helpers/wrapHtml';
+import {StaticRouter} from 'react-router';
 import httpProxy from 'http-proxy';
-import { ContextProvider, extractDataOnServerSide, gatherAsyncProperties, registerServices, RequestContext } from './service';
-import { ServerPortal } from './helpers/serverPortal';
-import { AppProvider } from './appProvider';
+import {ContextProvider, extractDataOnServerSide, gatherAsyncProperties, registerServices, RequestContext} from './service';
+import {ServerPortal} from './helpers/serverPortal';
+import {AppProvider} from './appProvider';
+
 const cookieParser = require('cookie-parser');
+const useragent = require('express-useragent');
 
 export type ServerHandlerOptions = {
 	match: string;
@@ -23,12 +25,9 @@ export type ServerHandlerOptions = {
 	provider: typeof AppProvider;
 }
 export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
-	const { match, apiPrefix = '/api', proxy, assets, enableGzip, webpackOptions, provider, publicDir, bundleDir } = options;
+	const {match, apiPrefix = '/api', proxy, assets, enableGzip, webpackOptions, provider, publicDir, bundleDir} = options;
 	const isDevelopment = process.env.NODE_ENV === 'development';
 
-	app.use(express.urlencoded({extended: false}));
-	app.use(express.json());
-	app.use(cookieParser());
 
 	app.get('/favicon.ico', (req: Request, res: Response) => {
 		res.statusCode = 404;
@@ -52,11 +51,13 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 
 	const api = baseUrl + apiPrefix;
 	if (proxy) {
+		process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 		app.all(`${api}*`, (req, res) => {
 			req.url = req.url.substr(api.length);
 			return proxyServer.proxyRequest(req, res, {
 				changeOrigin: true,
 				target: proxy,
+				secure: false,
 			});
 		});
 	}
@@ -79,7 +80,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 			noInfo: true,
 			hot: true,
 			stats: 'errors-only',
-			publicPath:  webpackOptions.output.publicPath,
+			publicPath: webpackOptions.output.publicPath,
 		}));
 		app.use(require('webpack-hot-middleware')(compiler, {
 			log: console.log,
@@ -93,6 +94,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 		res.statusCode = 404;
 		res.end();
 	}
+
 	app.use(publicUri, express.static(publicDir[1]), notFound);
 
 	if (enableGzip && !isDevelopment) {
@@ -116,17 +118,25 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 			next();
 		}
 	});
+
+
+	app.use(express.urlencoded({extended: false}));
+	app.use(express.json());
+	app.use(cookieParser());
+	app.use(useragent.express());
+
 	app.get(match, async (req: Request, res: Response) => {
 		const now = new Date();
 		const context: RequestContext = {
 			url: req.url,
-			body: req.body,
-			query: req.query,
+			body: req.body || {},
+			query: req.query || {},
 			method: req.method,
 			hostname: req.hostname,
-			cookies: req.cookies,
+			cookies: req.cookies || {},
 			protocol: req.protocol,
-			headers: req.headers,
+			headers: req.headers || {},
+			useragent: (req as any).useragent || {},
 
 			services: [],
 			dateTime: now,
@@ -190,7 +200,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 							{p.endOfBody}
 						</Fragment>}
 					>
-					{!isDevelopment && p.application}
+						{!isDevelopment && p.application}
 					</Html>
 				</StaticRouter>
 			</ContextProvider>
