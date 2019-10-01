@@ -153,7 +153,7 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
 export const gatherMethods = async (context: RequestContext, name: string) => {
 	const pm = context.services.reduce((acc, service) => {
 		if(service[name] ) {
-			acc.push(service[name]());
+			acc.push(service[name](context));
 		}
 		return acc;
 	}, []);
