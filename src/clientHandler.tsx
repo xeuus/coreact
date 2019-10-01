@@ -7,11 +7,44 @@ import { baseUrl, dateTime } from './helpers/viewState';
 import {createBrowserHistory} from 'history';
 import { ConnectedRouter } from './routing';
 
+export function parseQuery(queryString: string) {
+	const query: any = {};
+	const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+	for (let i = 0; i < pairs.length; i++) {
+		const pair = pairs[i].split('=');
+		query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+	}
+	return query;
+}
+export function parseCookie(cookies: string) {
+	return cookies.split(';').reduce<any>((obj, cookieString) => {
+		const splitCookie = cookieString.split('=').map(cookiePart => cookiePart.trim() );
+		try {
+			obj[splitCookie[0]] = JSON.parse(splitCookie[1])
+		} catch (error) {
+			obj[splitCookie[0]] = splitCookie[1]
+		}
+		return obj
+	}, {});
+}
+
 export const clientHandler = (provider: typeof AppProvider): (() => any) => {
+	let proto = window.location.protocol;
+	const idx = proto.indexOf(':');
+	proto = proto.substr(0, idx);
 	const context: RequestContext = {
+
+		url: window.location.pathname + window.location.search,
+		body: {},
+		query: parseQuery(window.location.search),
+		method: 'GET',
+		hostname: window.location.hostname,
+		cookies: parseCookie(window.document.cookie),
+		protocol: proto,
+		headers: {},
+
 		baseUrl,
 		dateTime: new Date(dateTime),
-		url: window.location.pathname + window.location.search,
 		services: [],
 		environment: 'client',
 

@@ -9,6 +9,7 @@ import httpProxy from 'http-proxy';
 import { ContextProvider, extractDataOnServerSide, gatherAsyncProperties, registerServices, RequestContext } from './service';
 import { ServerPortal } from './helpers/serverPortal';
 import { AppProvider } from './appProvider';
+const cookieParser = require('cookie-parser');
 
 export type ServerHandlerOptions = {
 	match: string;
@@ -25,6 +26,9 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 	const { match, apiPrefix = '/api', proxy, assets, enableGzip, webpackOptions, provider, publicDir, bundleDir } = options;
 	const isDevelopment = process.env.NODE_ENV === 'development';
 
+	app.use(express.urlencoded({extended: false}));
+	app.use(express.json());
+	app.use(cookieParser());
 
 	app.get('/favicon.ico', (req: Request, res: Response) => {
 		res.statusCode = 404;
@@ -116,6 +120,14 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 		const now = new Date();
 		const context: RequestContext = {
 			url: req.url,
+			body: req.body,
+			query: req.query,
+			method: req.method,
+			hostname: req.hostname,
+			cookies: req.cookies,
+			protocol: req.protocol,
+			headers: req.headers,
+
 			services: [],
 			dateTime: now,
 			baseUrl: baseUrl,

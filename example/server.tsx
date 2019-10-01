@@ -1,6 +1,7 @@
 import express from 'express';
 import { serverHandler } from '../src/serverHandler';
 import { register } from '../src/webpack';
+import Provider from "./provider";
 
 const path = require('path');
 const app = express();
@@ -9,9 +10,10 @@ const webpackOptions = require('../../webpack.config.js');
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 
-register(path.resolve(__dirname, '..'), '/dist/example')
+register(path.resolve(__dirname, '..'), '/dist/example');
+
 serverHandler(app, {
-	provider: path.resolve(__dirname, './provider'),
+	provider: Provider,
 	match: '/*',
 	assets: isDevelopment ? [
 		'/dist/example.js?324!defer',

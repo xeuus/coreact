@@ -7,6 +7,14 @@ const services: any[] = [];
 
 export type RequestContext = {
 	url: string;
+	method?: string;
+	body?: any;
+	query?: any;
+	hostname?: string;
+	cookies?: string;
+	protocol?: string;
+	headers?: any;
+
 	baseUrl: string;
 	storagePrefix?: string;
 	dateTime: Date;
