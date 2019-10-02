@@ -125,7 +125,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 	app.use(cookieParser());
 	app.use(useragent.express());
 
-	app.get(match, async (req: Request, res: Response) => {
+	app.all(match, async (req: Request, res: Response) => {
 		const now = new Date();
 		const context: RequestContext = {
 			url: req.url,
