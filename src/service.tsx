@@ -217,13 +217,15 @@ export function service(target: any) {
 					return this['$' + key];
 				},
 				set: (value: any) => {
-					Object.defineProperty(this, '$' + key, {
-						configurable: true,
-						writable: true,
-						enumerable: false,
-						value: value,
-					});
-					observer.dispatch(key, value, id);
+					if(this['$' + key] !== value) {
+						Object.defineProperty(this, '$' + key, {
+							configurable: true,
+							writable: true,
+							enumerable: false,
+							value: value,
+						});
+						observer.dispatch(key, value, id);
+					}
 				}
 			});
 		});
