@@ -148,11 +148,11 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 		const p = new provider(context);
 
 		await p.before();
-		await gatherMethods(context, 'before');
+		await gatherMethods(context, 'onServerLoad');
 		await gatherAsyncProperties(context);
 		await p.server(req, res);
 		await p.after();
-		await gatherMethods(context, 'after');
+		await gatherMethods(context, 'afterServerLoaded');
 		const saltKey = randomString(50);
 		const iso = now.toISOString();
 		const cipher = saltKey + iso;

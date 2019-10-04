@@ -4,6 +4,13 @@ import {clientDecrypt, clientEncrypt, clientRead} from './helpers/clientRead';
 let counter = 0;
 const services: any[] = [];
 
+export interface ServiceEvents {
+	onServerLoad?(context: RequestContext): Promise<any>;
+	afterServerLoaded?(context: RequestContext): Promise<any>;
+	onClientLoad?(context: RequestContext) : Promise<any>;
+	afterClientLoaded?(context: RequestContext): Promise<any>;
+}
+
 
 export type RequestContext = {
 	url: string;

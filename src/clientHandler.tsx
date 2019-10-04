@@ -75,14 +75,13 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 
 			await p.before();
 			context.storagePrefix = p.storagePrefix;
-
-			await gatherMethods(context, 'before');
 			registerPersistClient(context);
 			restorePersistedDataOnClientSide(context);
+			await gatherMethods(context, 'onClientLoad');
 			await gatherAsyncProperties(context);
 			await p.client();
 			await p.after();
-			await gatherMethods(context, 'after');
+			await gatherMethods(context, 'afterClientLoaded');
 		}}>{
 		() => <ContextProvider context={context}>
 			<ConnectedRouter history={history}>
