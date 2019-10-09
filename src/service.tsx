@@ -87,22 +87,45 @@ export const registerPersistClient = (context: RequestContext) => {
 			}
 		});
 	};
-	window.addEventListener('beforeunload', persistChanges)
+
+	let lock = false;
+	function lockedSave() {
+		if(!lock){
+			lock = true;
+			persistChanges();
+		}
+	}
+	try {
+		window.addEventListener('beforeunload', lockedSave);
+	}catch (e) {
+	}
+	try {
+		window.addEventListener('pagehide', lockedSave);
+	}catch (e) {
+	}
+	try {
+		window.addEventListener('visibilitychange', lockedSave);
+	}catch (e) {
+	}
 };
 export const restorePersistedDataOnClientSide = (context: RequestContext) => {
 	context.services.forEach((service) => {
 		const {id, persist = []} = metadataOf(service);
 		if (persist.length > 0) {
 			if (typeof window.localStorage != undefined) {
-				const key = `${context.storagePrefix}_bridge${id}`;
-				const content = clientDecrypt(localStorage.getItem(key), key);
-				const json = JSON.parse(content);
-				persist.forEach((data: any) => {
-					const {key} = data;
-					if (json[key]) {
-						service[key] = json[key];
-					}
-				});
+				try {
+					const key = `${context.storagePrefix}_bridge${id}`;
+					const content = clientDecrypt(localStorage.getItem(key), key);
+					const json = JSON.parse(content);
+					persist.forEach((data: any) => {
+						const {key} = data;
+						if (json[key]) {
+							service[key] = json[key];
+						}
+					});
+				}catch (e) {
+					console.error(e);
+				}
 			}
 		}
 	});
