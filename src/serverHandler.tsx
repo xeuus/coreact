@@ -146,7 +146,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 		registerServices(context);
 
 		const p = new provider(context);
-
+		await gatherMethods(context, 'serverBeforeAny');
 		await p.before();
 		await gatherMethods(context, 'onServerLoad');
 		await gatherAsyncProperties(context);

@@ -72,7 +72,7 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 	const app = <ViewHolder
 		process={async () => {
 			restoreDataOnClientSide(context);
-
+			await gatherMethods(context, 'clientBeforeAny');
 			await p.before();
 			context.storagePrefix = p.storagePrefix;
 			registerPersistClient(context);
