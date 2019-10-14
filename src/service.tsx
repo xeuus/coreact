@@ -22,7 +22,6 @@ export type RequestContext = {
 	protocol?: string;
 	headers?: any;
 	useragent?: any;
-
 	baseUrl: string;
 	storagePrefix?: string;
 	dateTime: Date;

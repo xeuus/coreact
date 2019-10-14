@@ -66,9 +66,6 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 
 	const element = document.getElementById(p.name);
 
-	const history = createBrowserHistory({
-		basename: baseUrl,
-	});
 	const app = <ViewHolder
 		process={async () => {
 			restoreDataOnClientSide(context);
@@ -84,7 +81,7 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
 			await gatherMethods(context, 'afterClientLoaded');
 		}}>{
 		() => <ContextProvider context={context}>
-			<ConnectedRouter history={history}>
+			<ConnectedRouter>
 				{p.application}
 			</ConnectedRouter>
 		</ContextProvider>
