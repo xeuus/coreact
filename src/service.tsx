@@ -189,7 +189,7 @@ export const gatherMethods = async (context: RequestContext, name: string) => {
 	return await Promise.all(pm);
 };
 
-const CoreContext = createContext<RequestContext>({
+export const CoreContext = createContext<RequestContext>({
 	baseUrl: '',
 	dateTime: null,
 	environment: 'none',
