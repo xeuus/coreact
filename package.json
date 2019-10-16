@@ -1,6 +1,6 @@
 {
   "name": "coreact",
-  "version": "1.6.19",
+  "version": "1.6.20",
   "description": "react core architecture",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

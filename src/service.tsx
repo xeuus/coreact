@@ -189,7 +189,7 @@ export const gatherMethods = async (context: RequestContext, name: string) => {
 	return await Promise.all(pm);
 };
 
-const context = createContext<RequestContext>({
+const CoreContext = createContext<RequestContext>({
 	baseUrl: '',
 	dateTime: null,
 	environment: 'none',
@@ -197,6 +197,7 @@ const context = createContext<RequestContext>({
 	services: [],
 });
 
+export const ContextConsumer = CoreContext.Consumer;
 
 export function metadataOf(target: any) {
 	return target.__metadata__ || {};
@@ -296,7 +297,7 @@ export function consumer(target: any) {
 
 		return original.apply(this, arguments);
 	};
-	func.contextType = context;
+	func.contextType = CoreContext;
 	func.prototype = original.prototype;
 	return func as any;
 }
@@ -370,9 +371,9 @@ export function observe<T>(type: { new(): T }) {
 }
 
 export function ContextProvider(props: { context: RequestContext; children: ReactNode }) {
-	return <context.Provider value={props.context}>
+	return <CoreContext.Provider value={props.context}>
 		{props.children}
-	</context.Provider>;
+	</CoreContext.Provider>;
 }
 
 export function registerServices(context: RequestContext) {
