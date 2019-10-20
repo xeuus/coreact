@@ -19,13 +19,14 @@ export type ServerHandlerOptions = {
 	enableGzip?: boolean;
 	webpackOptions: any;
 	proxy?: string;
+	allowRedirect?:boolean;
 	apiPrefix?: string;
 	publicDir?: [string, string];
 	bundleDir?: [string, string];
 	provider: typeof AppProvider;
 }
 export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
-	const {match, apiPrefix = '/api', proxy, assets, enableGzip, webpackOptions, provider, publicDir, bundleDir} = options;
+	const {match, apiPrefix = '/api', proxy, assets, enableGzip, webpackOptions, provider, publicDir, bundleDir, allowRedirect} = options;
 	const isDevelopment = process.env.NODE_ENV === 'development';
 
 
@@ -209,7 +210,8 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 			</ContextProvider>
 		);
 		res.setHeader('Content-Type', 'text/html;charset=utf-8');
-		if (routerContext.url) {
+
+		if (routerContext.url && allowRedirect) {
 			res.redirect(301, routerContext.url);
 			return
 		}
