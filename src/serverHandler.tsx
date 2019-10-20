@@ -158,7 +158,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 		const cipher = saltKey + iso;
 		const data = extractDataOnServerSide(context);
 		const keys = Object.keys(data);
-		const routerContext = {};
+		const routerContext = {} as any;
 		const html = renderToString(
 			<ContextProvider context={context}>
 				<StaticRouter basename={baseUrl} location={req.url} context={routerContext}>
@@ -208,6 +208,11 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
 				</StaticRouter>
 			</ContextProvider>
 		);
+		res.setHeader('Content-Type', 'text/html;charset=utf-8');
+		if (routerContext.url) {
+			res.redirect(301, routerContext.url);
+			return
+		}
 		res.statusCode = 200;
 		res.end(wrapHtml(html));
 	});
