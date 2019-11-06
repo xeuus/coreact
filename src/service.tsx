@@ -69,6 +69,9 @@ export const extractDataOnServerSide = (context: RequestContext) => {
 
 export let persistChanges = () => {
 };
+export let clearStorage = () => {
+
+};
 
 export const registerPersistClient = (context: RequestContext) => {
 	persistChanges = ()=>{
@@ -84,6 +87,14 @@ export const registerPersistClient = (context: RequestContext) => {
 				const data = clientEncrypt(JSON.stringify(obj), key);
 				localStorage.setItem(key, data);
 			}
+		});
+	};
+
+	clearStorage = ()=>{
+		context.services.forEach((service) => {
+			const {id} = metadataOf(service);
+			const key = `${context.storagePrefix}_bridge${id}`;
+			localStorage.removeItem(key)
 		});
 	};
 
@@ -123,7 +134,6 @@ export const restorePersistedDataOnClientSide = (context: RequestContext) => {
 						}
 					});
 				}catch (e) {
-					console.error(e);
 				}
 			}
 		}
