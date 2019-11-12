@@ -2,7 +2,7 @@ import {RequestContext} from "./requestContext";
 import {EventBus} from "./eventBus";
 import {CoreContext} from "./context";
 import {deserializeParams} from "./param";
-import {matchUri} from "./helpers/match";
+import {MatchResult, matchUri} from "./helpers/match";
 
 let counter = 0;
 const services: any[] = [];
@@ -62,6 +62,56 @@ export function consumer(target: any) {
   return func as any;
 }
 
+export function observant<T>(types: { new(context: RequestContext): T }[], ...keys: string[]) {
+  return function (target: any) {
+
+    const original = target;
+    const func = function (props: any, context: RequestContext) {
+
+      const {observers = []} = metadataOf(target.prototype);
+      const component = this;
+
+
+      const release: any[] = [];
+      const originalDidMount = this.componentDidMount;
+      this.componentDidMount = function (...args: any[]) {
+        types.forEach(typ => {
+          const {id} = metadataOf(typ.prototype);
+          const {observer} = metadataOf(context.services[id]);
+          release.push(observer.listen((id: string) => {
+            if ((Array.isArray(keys) && keys.length > 0) && !keys.includes(id)) {
+              return
+            }
+            this.forceUpdate();
+          }));
+        });
+        observers.forEach((data: any) => {
+          const {key, observer, keys} = data;
+          release.push(observer.listen(function (id: string, value: any) {
+            if ((Array.isArray(keys) && keys.length > 0) && !keys.includes(id)) {
+              return
+            }
+            component[key].call(component, id, value);
+          }));
+        });
+        if (originalDidMount) {
+          originalDidMount.apply(this, args);
+        }
+      };
+      const originalUnmount = this.componentWillUnmount;
+      this.componentWillUnmount = function (...args: any[]) {
+        if (originalUnmount) {
+          original.apply(this, args)
+        }
+        release.forEach(func => func());
+      };
+      return original.call(this, props, context);
+    };
+    func.contextType = CoreContext;
+    func.prototype = original.prototype;
+    return func as any;
+  }
+}
 
 export function service(target: any) {
   const id = counter++;
@@ -137,13 +187,19 @@ export function fillQueries(pathname: string, search: string, context: RequestCo
         a[key] = obj[key];
     });
     url.forEach((q: any) => {
-      const {key, pattern} = q;
+      const {key, pattern, bind} = q;
       const found = matchUri(pathname, {
         exact: false, path: pattern, sensitive: false, strict: false,
       });
       if (found) {
-        if (a[key] !== found.params[key]) {
-          a[key] = found.params[key];
+        const params = found.params;
+
+        if (bind) {
+          a[key] = params;
+        } else {
+          if (a[key] !== params[key]) {
+            a[key] = params[key];
+          }
         }
       }
     })
@@ -156,16 +212,18 @@ export async function runAsync(pathname: string, search: string, context: Reques
     fetch.forEach((data: any) => {
       const {key, pattern, options} = data;
       let allow = true;
+      let matched: MatchResult = null;
       if (pattern) {
         const {exact = false, sensitive = false, strict = false} = options;
-        allow = !!matchUri(pathname, {
+        matched = matchUri(pathname, {
           exact, sensitive, strict,
           path: pattern,
-        })
+        });
+        allow = !!matched;
       }
       if (allow) {
         const func = service[key];
-        acc.push((func.bind(service))(context));
+        acc.push((func.bind(service))(context, matched ? matched.params : {}));
       }
     });
     return acc;
@@ -192,6 +250,22 @@ export function fromUrl(pattern: string) {
       url: [...url, {
         key,
         pattern,
+      }],
+      observables: [...observables, {
+        key,
+      }]
+    });
+  }
+}
+
+export function bindUrl(pattern: string) {
+  return function (target: any, key: string) {
+    const {observables = [], url = []} = metadataOf(target);
+    metadata(target, {
+      url: [...url, {
+        key,
+        pattern,
+        bind: true,
       }],
       observables: [...observables, {
         key,

@@ -2,7 +2,7 @@ import React from 'react';
 import {clientRead} from './helpers/clientRead';
 import {RequestContext} from "./requestContext";
 import {metadata, metadataOf} from "./ioc";
-import {matchUri} from "./helpers/match";
+import {MatchResult, matchUri} from "./helpers/match";
 
 
 export class Service {
@@ -64,17 +64,20 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
     fetch.forEach((data: any) => {
       const {key, pattern, options} = data;
       let allow = true;
+      let matched: MatchResult = null;
       if (pattern) {
         const {exact = false, sensitive = false, strict = false} = options;
-        allow = !!matchUri(context.pathname, {
+        matched = matchUri(context.pathname, {
           exact, sensitive, strict,
           path: pattern,
-        })
+        });
+        allow = !!matched;
       }
       if (allow) {
         const func = service[key];
+
         if (!fetched.includes(key)) {
-          acc.push((func.bind(service))(context));
+          acc.push((func.bind(service))(context, matched ? matched.params : {}));
         }
       }
     });
