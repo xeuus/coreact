@@ -1,0 +1,20 @@
+export type RequestContext = {
+  url: string;
+  pathname: string;
+  search: string;
+  method: string;
+  body: { [key: string]: any };
+  query: { [key: string]: any };
+  hostname?: string;
+  cookies: { [key: string]: any };
+  protocol: string;
+  headers: { [key: string]: any };
+  useragent: any;
+  baseUrl: string;
+  storagePrefix: string;
+  apiAddress: string;
+  apiPrefix: string;
+  dateTime: Date;
+  services: any[];
+  environment: 'none' | 'server' | 'client';
+};

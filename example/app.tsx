@@ -1,65 +1,48 @@
-import React, { Component, Fragment } from 'react';
-import {Route, RouteComponentProps, Switch} from 'react-router';
-import {binder, consumer, fetch, inject, observable, observe, Routing, save, service} from '../src';
+import React, {Component, Fragment} from 'react';
+import {consumer, fromQuery, inject, match, observe, optional, range, RequestContext, RoutingService, service, Service} from '../src';
 
 export type AppProps = {
-	name: string;
+  name: string;
 }
+
 
 @service
-export class Home {
-	index: number = 0;
-	name: string = 'home';
-}
+export class Home extends Service {
+  routingService = inject(RoutingService, this);
+  @fromQuery page = 0;
 
 
-export class Temp extends Component<RouteComponentProps> {
-	render() {
-		return <div>
-			{this.props.match.path}
-		</div>;
-	}
+  @match('/hello')
+  data = (context: RequestContext)=>{
+
+    console.log(context.url);
+  }
 }
 
 @consumer
 export class App extends Component<AppProps> {
-	@inject routing = binder.bind(this)(Routing);
+  routingService = inject(RoutingService, this);
+  home = inject(Home, this);
 
-	render() {
-		return <Fragment>
-			<Switch>
-				<Route path="/" exact component={Temp}/>
-				<Route path="/hello" component={Temp}/>
-				<Route path="/aryan" component={Temp}/>
-				<Route path="/joke" component={Temp}/>
-			</Switch>
+  @observe(Home, 'page')
+  observer = () => {
+    this.forceUpdate();
+  };
 
-			<button onClick={()=>{
-				this.routing.goto('/')
-			}}>
-				go1
-			</button>
-			<button onClick={()=>{
+  render() {
+    return <Fragment>
+      {range(10).map(a => {
+        return <button key={a} onClick={() => {
+          optional(() => {
+            this.routingService.replace({
+              page: a
+            })
+          });
 
-				this.routing.goto('/hello')
-			}}>
-				go2
-			</button>
-			<button onClick={()=>{
-				this.routing.goto('/aryan')
-			}}>
-				go3
-			</button>
-			<button onClick={()=>{
-				this.routing.goto('/hello?joke=12')
-			}}>
-				go4
-			</button>
-			<button onClick={()=>{
-				this.routing.replace('/joke')
-			}}>
-				repl
-			</button>
-		</Fragment>
-	}
+        }}>{a}</button>
+      })}
+      <button onClick={()=>this.routingService.replace('/hello')}>hello</button>
+      <div>{this.home.page}</div>
+    </Fragment>
+  }
 }

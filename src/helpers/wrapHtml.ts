@@ -1,3 +1,3 @@
 export function wrapHtml(html: string): string {
-	return `<!doctype html>${html}`;
+  return `<!doctype html>${html}`;
 }

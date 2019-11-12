@@ -1,8 +1,16 @@
-export * from './routing';
-export * from './service';
-export * from './clientHandler';
 export * from './appProvider';
-export * from './helpers/guid';
+export * from './clientHandler';
+export * from './connectedRouter';
+export * from './context';
+export * from './ioc';
+export * from './param';
+export * from './persistClientSide';
+export * from './requestContext';
+export * from './routingService';
+export * from './service';
+
+
 export * from './helpers/checkRtl';
 export * from './helpers/match';
-export * from './helpers/random';
+export * from './helpers/functions';
+export * from './helpers/base64';
