@@ -130,24 +130,35 @@ export function match(pattern?: string, options: { exact?: boolean, sensitive?: 
 export function fillQueries(pathname: string, search: string, context: RequestContext) {
   const obj = deserializeParams(search);
   context.services.map((a: any) => {
-    const {query = []} = metadataOf(a);
+    const {url = [], query = []} = metadataOf(a);
     query.forEach((q: any) => {
       const {key} = q;
       if (a[key] !== obj[key])
         a[key] = obj[key];
+    });
+    url.forEach((q: any) => {
+      const {key, pattern} = q;
+      const found = matchUri(pathname, {
+        exact: false, path: pattern, sensitive: false, strict: false,
+      });
+      if (found) {
+        if (a[key] !== found.params[key]) {
+          a[key] = found.params[key];
+        }
+      }
     })
   });
 }
 
 export async function runAsync(pathname: string, search: string, context: RequestContext) {
   const pm = context.services.reduce((acc, service) => {
-    const {fetch = [], fetched = []} = metadataOf(service);
+    const {fetch = []} = metadataOf(service);
     fetch.forEach((data: any) => {
       const {key, pattern, options} = data;
       let allow = true;
       if (pattern) {
         const {exact = false, sensitive = false, strict = false} = options;
-        allow = !!matchUri(pathname + search, {
+        allow = !!matchUri(pathname, {
           exact, sensitive, strict,
           path: pattern,
         })
@@ -174,6 +185,22 @@ export function fromQuery(target: any, key: string) {
   });
 }
 
+export function fromUrl(pattern: string) {
+  return function (target: any, key: string) {
+    const {observables = [], url = []} = metadataOf(target);
+    metadata(target, {
+      url: [...url, {
+        key,
+        pattern,
+      }],
+      observables: [...observables, {
+        key,
+      }]
+    });
+  }
+}
+
+
 export function observe<T>(type: { new(context: RequestContext): T }, ...keys: string[]) {
   const {observer} = metadataOf(type.prototype);
   return (target: any, key: string) => {
@@ -189,7 +216,6 @@ export function observe<T>(type: { new(context: RequestContext): T }, ...keys: s
 
 export function registerServices(context: RequestContext) {
   context.services = services.map(a => Object.create(a.prototype));
-
   context.services.forEach((service: any) => {
     Object.defineProperty(service, 'context', {
       value: context,
@@ -198,7 +224,7 @@ export function registerServices(context: RequestContext) {
       writable: false,
     });
     service.constructor(context);
-    const {id, observer, observables = [], observers = []} = metadataOf(service);
+    const {observer, observables = [], observers = []} = metadataOf(service);
     observers.forEach((data: any) => {
       const {key, observer, keys} = data;
       observer.listen(function (id: string, value: any) {
@@ -235,6 +261,5 @@ export function registerServices(context: RequestContext) {
         }
       });
     });
-
   });
 }

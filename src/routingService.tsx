@@ -13,6 +13,8 @@ export type RoutingState = {
 
 @service
 export class RoutingService {
+  history: History;
+  inTimeTravelling: boolean = false;
   @observable private error: any = null;
   @observable private state: RoutingState = {
     location: {
@@ -26,10 +28,6 @@ export class RoutingService {
     isFirstRendering: true,
   };
 
-  history: History;
-  inTimeTravelling: boolean = false;
-
-
   get dummy() {
     return this.state;
   }
@@ -40,11 +38,11 @@ export class RoutingService {
     if (value.action != 'POP') {
       runAsync(value.location.pathname, value.location.search, context).then(() => {
         this.state = value;
-      }).catch((error)=>{
+      }).catch((error) => {
         this.error = error;
         this.state = value;
       });
-    }else {
+    } else {
       this.state = value;
     }
   }
@@ -110,7 +108,7 @@ export class RoutingService {
 
   match = (pattern: string, options: { exact?: boolean, sensitive?: boolean, strict?: boolean } = {}) => {
     const {exact = true, sensitive = false, strict = false} = options;
-    return matchUri(this.url, {
+    return matchUri(this.pathname, {
       exact, sensitive, strict,
       path: pattern,
     })

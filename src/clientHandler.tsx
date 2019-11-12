@@ -7,7 +7,7 @@ import {apiAddress, apiPrefix, baseUrl, dateTime} from './helpers/viewState';
 import {UserAgent} from 'express-useragent';
 import {registerPersistClient, restorePersistedDataOnClientSide} from "./persistClientSide";
 import {ConnectedRouter} from "./connectedRouter";
-import {deserializeParams, parseCookie} from "./param";
+import {parseCookie} from "./param";
 import {RequestContext} from "./requestContext";
 import {registerServices} from "./ioc";
 import {ContextProvider} from "./context";

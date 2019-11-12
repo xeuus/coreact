@@ -1,5 +1,5 @@
 import React, {Component, Fragment} from 'react';
-import {consumer, fromQuery, inject, match, observe, optional, range, RequestContext, RoutingService, service, Service} from '../src';
+import {consumer, fromQuery, fromUrl, inject, match, observe, optional, range, RequestContext, RoutingService, service, Service} from '../src';
 
 export type AppProps = {
   name: string;
@@ -9,14 +9,18 @@ export type AppProps = {
 @service
 export class Home extends Service {
   routingService = inject(RoutingService, this);
-  @fromQuery page = 0;
+  @fromQuery page: number = 0;
+
+  @fromUrl('/:a?/:b?/:c?') a: string = undefined;
+  @fromUrl('/:a?/:b?/:c?') b: string = undefined;
+  @fromUrl('/:a?/:b?/:c?') c: string = undefined;
 
 
   @match('/hello')
-  data = (context: RequestContext)=>{
+  data = async (context: RequestContext) => {
+    console.log('call');
+  };
 
-    console.log(context.url);
-  }
 }
 
 @consumer
@@ -24,8 +28,9 @@ export class App extends Component<AppProps> {
   routingService = inject(RoutingService, this);
   home = inject(Home, this);
 
-  @observe(Home, 'page')
-  observer = () => {
+  @observe(Home)
+  observer = (key: string, value: any) => {
+    console.log(key, value)
     this.forceUpdate();
   };
 
@@ -41,8 +46,11 @@ export class App extends Component<AppProps> {
 
         }}>{a}</button>
       })}
-      <button onClick={()=>this.routingService.replace('/hello')}>hello</button>
+      <button onClick={() => this.routingService.replace('/hello')}>hello</button>
       <div>{this.home.page}</div>
+      <div>{this.home.a}</div>
+      <div>{this.home.b}</div>
+      <div>{this.home.c}</div>
     </Fragment>
   }
 }

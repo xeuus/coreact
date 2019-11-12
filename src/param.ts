@@ -135,7 +135,7 @@ function parseBlock(block: string) {
       const nextIdx = key.indexOf(']', idx);
       if (nextIdx > -1) {
         const k = key.substring(0, idx);
-        const i = +key.substring(idx+1, nextIdx);
+        const i = +key.substring(idx + 1, nextIdx);
 
         acc[k] = acc[k] || [];
         acc[k][i] = obj[key];
