@@ -51,7 +51,7 @@ export function consumer(target: any) {
     const originalUnmount = this.componentWillUnmount;
     this.componentWillUnmount = function (...args: any[]) {
       if (originalUnmount) {
-        original.apply(this, args)
+        originalUnmount.apply(this, args)
       }
       release.forEach(func => func());
     };
@@ -101,7 +101,7 @@ export function observant<T>(types: { new(context: RequestContext): T }[], ...ke
       const originalUnmount = this.componentWillUnmount;
       this.componentWillUnmount = function (...args: any[]) {
         if (originalUnmount) {
-          original.apply(this, args)
+          originalUnmount.apply(this, args)
         }
         release.forEach(func => func());
       };
