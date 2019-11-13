@@ -186,9 +186,9 @@ export function registerServices(context: RequestContext) {
     if (routingId != id) {
       initService(context, service, function (key: string, value: any) {
         const q = query.find((a: any) => a.key == key);
-        if (typeof window !== 'undefined') {
-          pathname = window.location.pathname;
-          search = window.location.search;
+        if (routingService.history) {
+          pathname = routingService.pathname;
+          search = routingService.search;
         }
         const current = deserializeParams(search);
 

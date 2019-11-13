@@ -133,9 +133,10 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
   app.all(match, async (req: Request, res: Response) => {
     const now = new Date();
 
-    const url = decomposeUrl(req.url);
+    const rawUrl = req.url.substr(baseUrl.length);
+    const url = decomposeUrl(rawUrl);
     const context: RequestContext = {
-      url: req.url,
+      url: rawUrl,
       pathname: url.pathname,
       search: url.search,
       body: req.body || {},

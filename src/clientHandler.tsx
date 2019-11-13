@@ -7,21 +7,24 @@ import {apiAddress, apiPrefix, baseUrl, dateTime} from './helpers/viewState';
 import {UserAgent} from 'express-useragent';
 import {registerPersistClient, restorePersistedDataOnClientSide} from "./persistClientSide";
 import {ConnectedRouter} from "./connectedRouter";
-import {deserializeParams, parseCookie} from "./param";
+import {decomposeUrl, deserializeParams, parseCookie} from "./param";
 import {RequestContext} from "./requestContext";
 import {ContextProvider} from "./context";
+import {url} from "inspector";
 
 
 export const clientHandler = (provider: typeof AppProvider): (() => any) => {
   let proto = window.location.protocol;
   const idx = proto.indexOf(':');
   proto = proto.substr(0, idx);
+  const rawUrl = (window.location.pathname + window.location.search).substr(baseUrl.length);
+  const url = decomposeUrl(rawUrl);
   const context: RequestContext = {
-    url: window.location.pathname + window.location.search,
-    pathname: window.location.pathname,
-    search: window.location.search,
+    url: rawUrl,
+    pathname: url.pathname,
+    search: url.search,
     body: {},
-    query: deserializeParams(window.location.search),
+    query: deserializeParams(url.search),
     method: 'GET',
     hostname: window.location.hostname,
     cookies: parseCookie(window.document.cookie),
