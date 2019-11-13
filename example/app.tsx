@@ -1,5 +1,5 @@
 import React, {Component, Fragment} from 'react';
-import {bindUrl, fromQuery, inject, match, observant, range, RequestContext, RoutingService, service, Service} from '../src';
+import {bindUrl, fromQuery, inject, observant, range, RoutingService, service, Service} from '../src';
 
 export type AppProps = {
   name: string;
@@ -25,6 +25,9 @@ export class App extends Component<AppProps> {
 
   render() {
     return <Fragment>
+      <div>{this.home.city}</div>
+      <div>{this.home.area}</div>
+      <div>{this.home.page}</div>
       {range(10).map(a => {
         return <button key={a} onClick={() => {
           this.home.page = a;
@@ -32,19 +35,24 @@ export class App extends Component<AppProps> {
       })}
       <button onClick={() => {
         this.home.city = 'ahwaz';
-      }}>ahwaz</button>
+      }}>ahwaz
+      </button>
       <button onClick={() => {
         this.home.city = 'tehran';
-      }}>tehran</button>
+      }}>tehran
+      </button>
       <button onClick={() => {
         this.home.city = undefined;
-      }}>undef</button>
+      }}>undef
+      </button>
       <button onClick={() => {
         this.home.area = 'amanie';
-      }}>amanie</button>
+      }}>amanie
+      </button>
       <button onClick={() => {
         this.home.area = 'jordan';
-      }}>jordan</button>
+      }}>jordan
+      </button>
     </Fragment>
   }
 }

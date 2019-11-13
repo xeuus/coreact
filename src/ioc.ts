@@ -167,7 +167,6 @@ export function match(pattern?: string, options: { exact?: boolean, sensitive?: 
 }
 
 
-
 export function fillQueries(pathname: string, search: string, context: RequestContext) {
   const obj = deserializeParams(search);
   context.services.map((a: any) => {
@@ -197,7 +196,7 @@ export async function runAsync(pathname: string, search: string, context: Reques
     const {fetch = []} = metadataOf(service);
     fetch.forEach((data: any) => {
       const {key, pattern, options} = data;
-      const {exact = false, sensitive = false, strict = false, environment=null} = options || {};
+      const {exact = false, sensitive = false, strict = false, environment = null} = options || {};
       let matched: MatchResult = null;
 
       if (environment && context.environment != environment) {
@@ -231,6 +230,7 @@ export function fromQuery(target: any, key: string) {
     }]
   });
 }
+
 export function bindQuery(name: string, role?: 'replace' | 'goto') {
   return function (target: any, key: string) {
     const {observables = [], query = []} = metadataOf(target);

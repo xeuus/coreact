@@ -141,7 +141,9 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
           });
           if (fn)
             fn(key, value);
-          observer.dispatch(key, value);
+          if (context.environment != 'server') {
+            observer.dispatch(key, value);
+          }
         }
       }
     });
@@ -151,6 +153,8 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
 
 export function registerServices(context: RequestContext) {
   const {id: routingId} = metadataOf(RoutingService.prototype);
+  let pathname = context.pathname;
+  let search = context.search;
   context.services = services.map(a => Object.create(a.prototype));
   let routingService: RoutingService = null;
   for (let i = 0; i < context.services.length; i++) {
@@ -168,8 +172,10 @@ export function registerServices(context: RequestContext) {
     if (routingId != id) {
       initService(context, service, function (key: string, value: any) {
         const q = query.find((a: any) => a.key == key);
-        const pathname = window.location.pathname;
-        const search = window.location.search;
+        if (typeof window !== 'undefined') {
+          pathname = window.location.pathname;
+          search = window.location.search;
+        }
         const current = deserializeParams(search);
 
         if (q) {

@@ -2,7 +2,7 @@ import React from 'react';
 import {hydrate, render} from 'react-dom';
 import {AppProvider} from './appProvider';
 import {ViewHolder} from './helpers/viewHolder';
-import {gatherAsyncProperties, gatherMethods, restoreDataOnClientSide,registerServices} from './service';
+import {gatherAsyncProperties, gatherMethods, registerServices, restoreDataOnClientSide} from './service';
 import {apiAddress, apiPrefix, baseUrl, dateTime} from './helpers/viewState';
 import {UserAgent} from 'express-useragent';
 import {registerPersistClient, restorePersistedDataOnClientSide} from "./persistClientSide";
