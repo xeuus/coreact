@@ -5,7 +5,7 @@ import {deserializeParams} from "./param";
 import {MatchResult, matchUri} from "./helpers/match";
 
 let counter = 0;
-const services: any[] = [];
+export const services: any[] = [];
 
 export function metadataOf(target: any) {
   return target.__metadata__ || {};
@@ -155,26 +155,17 @@ export function observable(target: any, key: string) {
 }
 
 
-export function fetch(target: any, key: string) {
-  const {fetch = []} = metadataOf(target);
-  metadata(target, {
-    fetch: [...fetch, {
-      key,
-    }]
-  });
-}
-
-
-export function match(pattern?: string, options: { exact?: boolean, sensitive?: boolean, strict?: boolean } = {}) {
+export function match(pattern?: string, options: { exact?: boolean, sensitive?: boolean, strict?: boolean, environment?: 'client' | 'server' } = {}) {
   return (target: any, key: string) => {
     const {fetch = []} = metadataOf(target);
     metadata(target, {
       fetch: [...fetch, {
-        key, pattern, options,
+        key, pattern, options
       }]
     });
   };
 }
+
 
 
 export function fillQueries(pathname: string, search: string, context: RequestContext) {
@@ -182,25 +173,20 @@ export function fillQueries(pathname: string, search: string, context: RequestCo
   context.services.map((a: any) => {
     const {url = [], query = []} = metadataOf(a);
     query.forEach((q: any) => {
-      const {key} = q;
-      if (a[key] !== obj[key])
-        a[key] = obj[key];
+      const {key, name} = q;
+      let alias = name || key;
+      if (a[key] !== obj[alias])
+        a[key] = obj[alias];
     });
     url.forEach((q: any) => {
-      const {key, pattern, bind} = q;
+      const {key, pattern, name} = q;
+      const alias = name || key;
       const found = matchUri(pathname, {
         exact: false, path: pattern, sensitive: false, strict: false,
       });
       if (found) {
         const params = found.params;
-
-        if (bind) {
-          a[key] = params;
-        } else {
-          if (a[key] !== params[key]) {
-            a[key] = params[key];
-          }
-        }
+        a[key] = params[alias];
       }
     })
   });
@@ -211,20 +197,23 @@ export async function runAsync(pathname: string, search: string, context: Reques
     const {fetch = []} = metadataOf(service);
     fetch.forEach((data: any) => {
       const {key, pattern, options} = data;
-      let allow = true;
+      const {exact = false, sensitive = false, strict = false, environment=null} = options || {};
       let matched: MatchResult = null;
+
+      if (environment && context.environment != environment) {
+        return
+      }
       if (pattern) {
-        const {exact = false, sensitive = false, strict = false} = options;
         matched = matchUri(pathname, {
           exact, sensitive, strict,
           path: pattern,
         });
-        allow = !!matched;
+        if (!matched) {
+          return;
+        }
       }
-      if (allow) {
-        const func = service[key];
-        acc.push((func.bind(service))(context, matched ? matched.params : {}));
-      }
+      const func = service[key];
+      acc.push((func.bind(service))(context, matched ? matched.params : {}));
     });
     return acc;
   }, []);
@@ -242,6 +231,21 @@ export function fromQuery(target: any, key: string) {
     }]
   });
 }
+export function bindQuery(name: string, role?: 'replace' | 'goto') {
+  return function (target: any, key: string) {
+    const {observables = [], query = []} = metadataOf(target);
+    metadata(target, {
+      query: [...query, {
+        key,
+        name,
+        role,
+      }],
+      observables: [...observables, {
+        key,
+      }]
+    });
+  }
+}
 
 export function fromUrl(pattern: string) {
   return function (target: any, key: string) {
@@ -258,14 +262,15 @@ export function fromUrl(pattern: string) {
   }
 }
 
-export function bindUrl(pattern: string) {
+export function bindUrl(pattern: string, name: string, role?: 'replace' | 'goto') {
   return function (target: any, key: string) {
     const {observables = [], url = []} = metadataOf(target);
     metadata(target, {
       url: [...url, {
         key,
         pattern,
-        bind: true,
+        name,
+        role,
       }],
       observables: [...observables, {
         key,
@@ -285,55 +290,4 @@ export function observe<T>(type: { new(context: RequestContext): T }, ...keys: s
       }]
     });
   };
-}
-
-
-export function registerServices(context: RequestContext) {
-  context.services = services.map(a => Object.create(a.prototype));
-  context.services.forEach((service: any) => {
-    Object.defineProperty(service, 'context', {
-      value: context,
-      configurable: false,
-      enumerable: false,
-      writable: false,
-    });
-    service.constructor(context);
-    const {observer, observables = [], observers = []} = metadataOf(service);
-    observers.forEach((data: any) => {
-      const {key, observer, keys} = data;
-      observer.listen(function (id: string, value: any) {
-        if ((Array.isArray(keys) && keys.length > 0) && !keys.includes(id)) {
-          return
-        }
-        service[key].call(service, id, value);
-      });
-    });
-    observables.forEach((data: any) => {
-      const {key} = data;
-      Object.defineProperty(service, '$' + key, {
-        configurable: true,
-        writable: false,
-        enumerable: false,
-        value: service[key],
-      });
-      Object.defineProperty(service, key, {
-        configurable: true,
-        enumerable: true,
-        get: () => {
-          return service['$' + key];
-        },
-        set: (value: any) => {
-          if (service['$' + key] !== value) {
-            Object.defineProperty(service, '$' + key, {
-              configurable: true,
-              writable: false,
-              enumerable: false,
-              value: value,
-            });
-            observer.dispatch(key, value);
-          }
-        }
-      });
-    });
-  });
 }

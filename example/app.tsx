@@ -1,5 +1,5 @@
 import React, {Component, Fragment} from 'react';
-import {bindUrl, fromQuery, inject, match, observant, optional, range, RequestContext, RoutingService, service, Service} from '../src';
+import {bindUrl, fromQuery, inject, match, observant, range, RequestContext, RoutingService, service, Service} from '../src';
 
 export type AppProps = {
   name: string;
@@ -10,34 +10,41 @@ export type AppProps = {
 export class Home extends Service {
   routingService = inject(RoutingService, this);
   @fromQuery page: number = 0;
-  @bindUrl('/hello/:b?/:c?') bulk: any = undefined;
-
-  @match('/hello/:b?/:c?')
-  data = async (context: RequestContext, params: any) => {
-
-  };
+  @bindUrl('/(buy|rent)/:city?/:area?', 'city') city: any = undefined;
+  @bindUrl('/(buy|rent)/:city?/:area?', 'area') area: any = undefined;
 }
 
-@observant([Home], 'page')
+@observant([Home])
 export class App extends Component<AppProps> {
   routingService = inject(RoutingService, this);
   home = inject(Home, this);
+
+  componentDidUpdate(prevProps: Readonly<AppProps>, prevState: Readonly<{}>, snapshot?: any): void {
+    console.log(this.home.city)
+  }
 
   render() {
     return <Fragment>
       {range(10).map(a => {
         return <button key={a} onClick={() => {
-          optional(() => {
-            this.routingService.replace({
-              page: a
-            })
-          });
-
+          this.home.page = a;
         }}>{a}</button>
       })}
-      <button onClick={() => this.routingService.replace('/hello')}>hello</button>
-      <div>{this.home.page}</div>
-      <div>{JSON.stringify(this.home.bulk)}</div>
+      <button onClick={() => {
+        this.home.city = 'ahwaz';
+      }}>ahwaz</button>
+      <button onClick={() => {
+        this.home.city = 'tehran';
+      }}>tehran</button>
+      <button onClick={() => {
+        this.home.city = undefined;
+      }}>undef</button>
+      <button onClick={() => {
+        this.home.area = 'amanie';
+      }}>amanie</button>
+      <button onClick={() => {
+        this.home.area = 'jordan';
+      }}>jordan</button>
     </Fragment>
   }
 }

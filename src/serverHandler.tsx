@@ -5,12 +5,12 @@ import {Html} from './helpers/html';
 import {wrapHtml} from './helpers/wrapHtml';
 import {StaticRouter} from 'react-router';
 import httpProxy from 'http-proxy';
-import {extractDataOnServerSide, gatherAsyncProperties, gatherMethods} from './service';
+import {extractDataOnServerSide, gatherAsyncProperties, gatherMethods, registerServices} from './service';
 import {ServerPortal} from './helpers/serverPortal';
 import {AppProvider} from './appProvider';
 import {RequestContext} from "./requestContext";
 import {decomposeUrl, deserializeParams} from "./param";
-import {fillQueries, registerServices} from "./ioc";
+import {fillQueries} from "./ioc";
 import {randomString} from "./helpers/functions";
 import {ContextProvider} from "./context";
 

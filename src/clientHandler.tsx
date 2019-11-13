@@ -2,14 +2,13 @@ import React from 'react';
 import {hydrate, render} from 'react-dom';
 import {AppProvider} from './appProvider';
 import {ViewHolder} from './helpers/viewHolder';
-import {gatherAsyncProperties, gatherMethods, restoreDataOnClientSide,} from './service';
+import {gatherAsyncProperties, gatherMethods, restoreDataOnClientSide,registerServices} from './service';
 import {apiAddress, apiPrefix, baseUrl, dateTime} from './helpers/viewState';
 import {UserAgent} from 'express-useragent';
 import {registerPersistClient, restorePersistedDataOnClientSide} from "./persistClientSide";
 import {ConnectedRouter} from "./connectedRouter";
-import {parseCookie} from "./param";
+import {deserializeParams, parseCookie} from "./param";
 import {RequestContext} from "./requestContext";
-import {registerServices} from "./ioc";
 import {ContextProvider} from "./context";
 
 
@@ -22,7 +21,7 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
     pathname: window.location.pathname,
     search: window.location.search,
     body: {},
-    query: {},
+    query: deserializeParams(window.location.search),
     method: 'GET',
     hostname: window.location.hostname,
     cookies: parseCookie(window.document.cookie),

@@ -15,7 +15,7 @@ export type RoutingState = {
 export class RoutingService {
   history: History;
   inTimeTravelling: boolean = false;
-  @observable private error: any = null;
+  @observable error: any = null;
   @observable private state: RoutingState = {
     location: {
       pathname: '',

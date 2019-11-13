@@ -1,8 +1,10 @@
 import React from 'react';
 import {clientRead} from './helpers/clientRead';
 import {RequestContext} from "./requestContext";
-import {metadata, metadataOf} from "./ioc";
+import {metadata, metadataOf, services} from "./ioc";
 import {MatchResult, matchUri} from "./helpers/match";
+import {RoutingService} from "./routingService";
+import {deserializeParams} from "./param";
 
 
 export class Service {
@@ -95,3 +97,125 @@ export const gatherMethods = async (context: RequestContext, name: string) => {
   }, []);
   return await Promise.all(pm);
 };
+
+
+function initService(context: RequestContext, service: any, fn?: (key: string, value: any) => any) {
+  const {observer, observables = [], observers = [], query = []} = metadataOf(service);
+  Object.defineProperty(service, 'context', {
+    value: context,
+    configurable: false,
+    enumerable: false,
+    writable: false,
+  });
+  service.constructor(context);
+  observers.forEach((data: any) => {
+    const {key, observer, keys} = data;
+    observer.listen(function (id: string, value: any) {
+      if ((Array.isArray(keys) && keys.length > 0) && !keys.includes(id)) {
+        return
+      }
+      service[key].call(service, id, value);
+    });
+  });
+  observables.forEach((data: any) => {
+    const {key} = data;
+    Object.defineProperty(service, '$' + key, {
+      configurable: true,
+      writable: false,
+      enumerable: false,
+      value: service[key],
+    });
+    Object.defineProperty(service, key, {
+      configurable: true,
+      enumerable: true,
+      get: () => {
+        return service['$' + key];
+      },
+      set: (value: any) => {
+        if (service['$' + key] !== value) {
+          Object.defineProperty(service, '$' + key, {
+            configurable: true,
+            writable: false,
+            enumerable: false,
+            value: value,
+          });
+          if (fn)
+            fn(key, value);
+          observer.dispatch(key, value);
+        }
+      }
+    });
+  });
+}
+
+
+export function registerServices(context: RequestContext) {
+  const {id: routingId} = metadataOf(RoutingService.prototype);
+  context.services = services.map(a => Object.create(a.prototype));
+  let routingService: RoutingService = null;
+  for (let i = 0; i < context.services.length; i++) {
+    const service = context.services[i];
+    const {id} = metadataOf(service);
+    if (routingId == id) {
+      initService(context, service);
+      routingService = service;
+      break
+    }
+  }
+  for (let i = 0; i < context.services.length; i++) {
+    const service = context.services[i];
+    const {id, query = [], url = []} = metadataOf(service);
+    if (routingId != id) {
+      initService(context, service, function (key: string, value: any) {
+        const q = query.find((a: any) => a.key == key);
+        const pathname = window.location.pathname;
+        const search = window.location.search;
+        const current = deserializeParams(search);
+
+        if (q) {
+          const {name, key, role = 'goto'} = q;
+          const alias = name || key;
+          if (current[alias] !== value) {
+            let obj = {
+              [alias]: value,
+            };
+            if (role == 'goto') {
+              routingService.goto(obj)
+            } else {
+              routingService.replace(obj)
+            }
+          }
+        } else {
+          const u = url.find((a: any) => a.key == key);
+          if (u) {
+            const {name, key, pattern, role = 'goto'} = u;
+            const alias = name || key;
+            let newPath = replaceSingleMatch(pathname, pattern, alias, value);
+            if (role == 'goto') {
+              routingService.goto(newPath + search)
+            } else {
+              routingService.replace(newPath + search)
+            }
+          }
+        }
+      })
+    }
+  }
+}
+
+function replaceSingleMatch(url: string, pattern: string, key: string, value: string) {
+  const path = url.split('/');
+  const ptr = pattern.split('/');
+  if (matchUri(url, {path: pattern, exact: false})) {
+    for (let i = 0; i < ptr.length; i++) {
+      if (ptr[i].startsWith(':' + key)) {
+        if (typeof value === 'undefined') {
+          path.splice(i, path.length - i);
+          return path.join("/") + "/"
+        }
+        path[i] = value;
+      }
+    }
+  }
+  return path.join('/')
+}
