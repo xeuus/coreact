@@ -174,7 +174,7 @@ export function fillQueries(pathname: string, search: string, context: RequestCo
     query.forEach((q: any) => {
       const {key, name} = q;
       let alias = name || key;
-      if (a[key] !== obj[alias]){
+      if (a[key] !== obj[alias]) {
         Object.defineProperty(a, '$' + key, {
           configurable: true,
           writable: false,
@@ -215,7 +215,7 @@ export async function runAsync(pathname: string, search: string, context: Reques
       }
       if (pattern) {
 
-        if(!pathname.endsWith("/"))
+        if (!pathname.endsWith("/"))
           pathname += "/";
         matched = matchUri(pathname, {
           exact, sensitive, strict,

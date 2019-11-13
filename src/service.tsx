@@ -78,17 +78,17 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
           path: pattern,
         });
 
-        if(!matched){
+        if (!matched) {
           return;
         }
       }
       const func = service[key];
-      if(context.environment == 'server') {
+      if (context.environment == 'server') {
         acc.push((func.bind(service))(context, matched ? matched.params : {}));
         loaded.push({
           key,
         })
-      }else {
+      } else {
         if (!fetched.includes(key)) {
           acc.push((func.bind(service))(context, matched ? matched.params : {}));
         }

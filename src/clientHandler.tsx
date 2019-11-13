@@ -10,7 +10,7 @@ import {ConnectedRouter} from "./connectedRouter";
 import {decomposeUrl, deserializeParams, parseCookie} from "./param";
 import {RequestContext} from "./requestContext";
 import {ContextProvider} from "./context";
-import {url} from "inspector";
+import {fillQueries} from "./ioc";
 
 
 export const clientHandler = (provider: typeof AppProvider): (() => any) => {
@@ -40,6 +40,7 @@ export const clientHandler = (provider: typeof AppProvider): (() => any) => {
     storagePrefix: 'service',
   };
   registerServices(context);
+  fillQueries(url.pathname, url.search, context);
 
   const p = new provider(context);
 
