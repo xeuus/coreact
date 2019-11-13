@@ -149,6 +149,8 @@ function parseBlock(block: string) {
 
 export function decomposeUrl(url: string) {
   const spl = url.split('?');
+  if (!spl[0].endsWith('/'))
+    spl[0] += '/';
   return {
     pathname: spl[0],
     search: spl[1] ? `?${spl[1]}` : '',

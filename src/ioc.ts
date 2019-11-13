@@ -174,8 +174,14 @@ export function fillQueries(pathname: string, search: string, context: RequestCo
     query.forEach((q: any) => {
       const {key, name} = q;
       let alias = name || key;
-      if (a[key] !== obj[alias])
-        a[key] = obj[alias];
+      if (a[key] !== obj[alias]){
+        Object.defineProperty(a, '$' + key, {
+          configurable: true,
+          writable: false,
+          enumerable: false,
+          value: obj[alias],
+        });
+      }
     });
     url.forEach((q: any) => {
       const {key, pattern, name} = q;
@@ -186,6 +192,12 @@ export function fillQueries(pathname: string, search: string, context: RequestCo
       if (found) {
         const params = found.params;
         a[key] = params[alias];
+        Object.defineProperty(a, '$' + key, {
+          configurable: true,
+          writable: false,
+          enumerable: false,
+          value: params[alias],
+        });
       }
     })
   });
@@ -202,6 +214,9 @@ export async function runAsync(pathname: string, search: string, context: Reques
         return
       }
       if (pattern) {
+
+        if(!pathname.endsWith("/"))
+          pathname += "/";
         matched = matchUri(pathname, {
           exact, sensitive, strict,
           path: pattern,
