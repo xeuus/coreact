@@ -198,7 +198,6 @@ export async function runAsync(pathname: string, search: string, context: Reques
       const {key, pattern, options} = data;
       const {exact = false, sensitive = false, strict = false, environment = null} = options || {};
       let matched: MatchResult = null;
-
       if (environment && context.environment != environment) {
         return
       }

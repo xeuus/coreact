@@ -65,22 +65,23 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
     const {fetch = [], fetched = []} = metadataOf(service);
     fetch.forEach((data: any) => {
       const {key, pattern, options} = data;
-      let allow = true;
       let matched: MatchResult = null;
+      const {exact = false, sensitive = false, strict = false, environment = null} = options;
+      if (environment && context.environment != environment) {
+        return
+      }
       if (pattern) {
-        const {exact = false, sensitive = false, strict = false} = options;
         matched = matchUri(context.pathname, {
           exact, sensitive, strict,
           path: pattern,
         });
-        allow = !!matched;
-      }
-      if (allow) {
-        const func = service[key];
-
-        if (!fetched.includes(key)) {
-          acc.push((func.bind(service))(context, matched ? matched.params : {}));
+        if(!matched){
+          return;
         }
+      }
+      const func = service[key];
+      if (!fetched.includes(key)) {
+        acc.push((func.bind(service))(context, matched ? matched.params : {}));
       }
     });
     return acc;

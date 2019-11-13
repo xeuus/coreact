@@ -1,5 +1,5 @@
 import React, {Component, Fragment} from 'react';
-import {bindUrl, fromQuery, inject, observant, range, RoutingService, service, Service} from '../src';
+import {bindUrl, fromQuery, inject, match, observant, range, RoutingService, service, Service} from '../src';
 
 export type AppProps = {
   name: string;
@@ -12,6 +12,13 @@ export class Home extends Service {
   @fromQuery page: number = 0;
   @bindUrl('/(buy|rent)/:city?/:area?', 'city') city: any = undefined;
   @bindUrl('/(buy|rent)/:city?/:area?', 'area') area: any = undefined;
+
+  @match('/', {
+    exact: true, environment: 'client',
+  })
+  async hello() {
+    console.log('hello')
+  }
 }
 
 @observant([Home])
