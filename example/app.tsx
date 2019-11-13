@@ -26,10 +26,6 @@ export class App extends Component<AppProps> {
   routingService = inject(RoutingService, this);
   home = inject(Home, this);
 
-  componentDidUpdate(prevProps: Readonly<AppProps>, prevState: Readonly<{}>, snapshot?: any): void {
-    console.log(this.home.city)
-  }
-
   render() {
     return <Fragment>
       <div>{this.home.city}</div>

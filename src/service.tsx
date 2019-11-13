@@ -21,7 +21,7 @@ export class Service {
 
 export const extractDataOnServerSide = (context: RequestContext) => {
   return context.services.reduce((acc, service) => {
-    const {id, save = [], fetch = []} = metadataOf(service);
+    const {id, save = [], loaded = []} = metadataOf(service);
     acc[id] = acc[id] || {};
     if (save.length > 0) {
       save.forEach((data: any) => {
@@ -29,9 +29,9 @@ export const extractDataOnServerSide = (context: RequestContext) => {
         acc[id][key] = service[key];
       });
     }
-    if (fetch.length > 0) {
+    if (loaded.length > 0) {
       acc[id].__fetched__ = [];
-      fetch.forEach((data: any) => {
+      loaded.forEach((data: any) => {
         const {key} = data;
         acc[id].__fetched__.push(key);
       });
@@ -63,10 +63,12 @@ export const restoreDataOnClientSide = (context: RequestContext) => {
 export const gatherAsyncProperties = async (context: RequestContext) => {
   const pm = context.services.reduce((acc, service) => {
     const {fetch = [], fetched = []} = metadataOf(service);
+    const loaded: any[] = [];
     fetch.forEach((data: any) => {
       const {key, pattern, options} = data;
       let matched: MatchResult = null;
       const {exact = false, sensitive = false, strict = false, environment = null} = options;
+
       if (environment && context.environment != environment) {
         return
       }
@@ -75,14 +77,25 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
           exact, sensitive, strict,
           path: pattern,
         });
+
         if(!matched){
           return;
         }
       }
       const func = service[key];
-      if (!fetched.includes(key)) {
+      if(context.environment == 'server') {
         acc.push((func.bind(service))(context, matched ? matched.params : {}));
+        loaded.push({
+          key,
+        })
+      }else {
+        if (!fetched.includes(key)) {
+          acc.push((func.bind(service))(context, matched ? matched.params : {}));
+        }
       }
+    });
+    metadata(service, {
+      loaded,
     });
     return acc;
   }, []);
