@@ -106,7 +106,7 @@ export default class Webpack {
           },
         ],
       },
-      optimization: {
+      optimization: isDevelopment ? {} : {
         minimize: true,
         minimizer: [
           new TerserPlugin({
