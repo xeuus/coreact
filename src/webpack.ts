@@ -7,6 +7,7 @@ export type WebpackConfigOptions = {
   enableGzip: boolean;
   path: string;
   publicPath: string;
+  externals?: any;
 }
 
 
@@ -40,7 +41,7 @@ export default class Webpack {
     const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
     const TerserPlugin = require('terser-webpack-plugin');
 
-    const {enableGzip, path, publicPath, entries, mode} = this.options;
+    const {enableGzip, path, publicPath, entries, mode, externals = {}} = this.options;
     const CompressionPlugin = enableGzip && require('compression-webpack-plugin');
     const isDevelopment = mode === 'development';
 
@@ -73,7 +74,7 @@ export default class Webpack {
         extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
         plugins: [new TsconfigPathsPlugin({})],
       },
-      externals: {},
+      externals,
       module: {
         rules: [
           {
@@ -106,11 +107,16 @@ export default class Webpack {
         ],
       },
       optimization: {
+        minimize: true,
         minimizer: [
           new TerserPlugin({
             parallel: 2,
+            extractComments: false,
             terserOptions: {
               ecma: 6,
+              output: {
+                comments: false,
+              },
             },
           }),
         ]
