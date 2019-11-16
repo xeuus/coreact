@@ -100,7 +100,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
     res.end();
   }
 
-  if (enableGzip && !isDevelopment) {
+  if (enableGzip) {
     app.get(new RegExp(`^.+(.js.gz\?|.js.gz$)`), (req, res, next) => {
       res.set('Content-Encoding', 'gzip');
       res.set('Content-Type', 'application/javascript');
