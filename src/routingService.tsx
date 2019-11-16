@@ -35,7 +35,7 @@ export class RoutingService {
   set dummy(value: RoutingState) {
     const {context} = this as any;
     fillQueries(value.location.pathname, value.location.search, context);
-    if (value.action != 'POP') {
+    if (!value.isFirstRendering) {
       runAsync(value.location.pathname, value.location.search, context).then(() => {
         this.state = value;
       }).catch((error) => {

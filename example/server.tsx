@@ -16,7 +16,7 @@ serverHandler(app, {
   provider: Provider,
   match: '/*',
   assets: isDevelopment ? [
-    '/dist/example.js.gz',
+    '/dist/example.js',
   ] : [
     '/dist/example.js.gz',
     '/dist/example.css',
