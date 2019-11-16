@@ -1,3 +1,5 @@
+import './hello.sass';
+
 import React, {Component, Fragment} from 'react';
 import {bindUrl, fromQuery, inject, match, observant, range, RoutingService, service, Service} from '../src';
 
