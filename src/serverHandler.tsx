@@ -100,18 +100,15 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
     res.end();
   }
 
-  app.use(publicUri, express.static(publicDir[1]), notFound);
-
   if (enableGzip && !isDevelopment) {
-    app.get(new RegExp(`^(${bundleUri}).+(.js\\?|.js$)`), (req, res, next) => {
-      const spl = req.url.split('?');
-      req.url = spl.length > 1 ? spl.join('.gz?') : `${spl[0]}.gz`;
+    app.get(new RegExp(`^.+(.js.gz\?|.js.gz$)`), (req, res, next) => {
       res.set('Content-Encoding', 'gzip');
       res.set('Content-Type', 'application/javascript');
       next();
     });
   }
 
+  app.use(publicUri, express.static(publicDir[1]), notFound);
   app.use(bundleUri, express.static(bundleDir[1]), notFound);
 
 
@@ -190,7 +187,7 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
                 const uri = file.startsWith('/') ? (baseUrl + file) : file;
                 const [name] = file.split('?');
                 if (name.substr(-3) === 'css') {
-                  return <link key={i} href={uri} rel="stylesheet"/>;
+                  return <link key={i} href={uri} rel="stylesheet" type="text/css"/>;
                 }
               })}
               {p.endOfHead}
@@ -209,8 +206,8 @@ export const serverHandler = (app: Express, options: ServerHandlerOptions) => {
                 const [file] = asset.split('!');
                 const uri = file.startsWith('/') ? (baseUrl + file) : file;
                 const [name] = file.split('?');
-                if (name.substr(-2) === 'js') {
-                  return <script key={i} src={uri}/>;
+                if (name.substr(-2) === 'js' || name.substr(-5) === 'js.gz') {
+                  return <script key={i} src={uri} type="application/javascript"/>;
                 }
               })}
               {p.endOfBody}

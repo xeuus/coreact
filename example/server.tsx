@@ -16,9 +16,9 @@ serverHandler(app, {
   provider: Provider,
   match: '/*',
   assets: isDevelopment ? [
-    '/dist/example.js?324!defer',
+    '/dist/example.js.gz',
   ] : [
-    '/dist/example.js!defer',
+    '/dist/example.js.gz',
     '/dist/example.css',
   ],
   proxy: 'http://localhost:5000/api',
