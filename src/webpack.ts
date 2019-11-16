@@ -9,6 +9,7 @@ export type WebpackConfigOptions = {
   path: string;
   publicPath: string;
   externals?: any;
+  sassOptions?: any;
 }
 
 
@@ -44,7 +45,7 @@ export default class Webpack {
     const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
     const TerserPlugin = require('terser-webpack-plugin');
 
-    const {enableGzip, path, publicPath, entries, mode, externals = {}} = this.options;
+    const {enableGzip, path, publicPath, entries, mode, externals = {}, sassOptions = {}} = this.options;
     const CompressionPlugin = enableGzip && require('compression-webpack-plugin');
     const isDevelopment = mode === 'development';
 
@@ -104,7 +105,10 @@ export default class Webpack {
               isDevelopment ? 'style-loader' : MiniCssExtractPlugin.loader,
               'css-loader',
               'postcss-loader',
-              'sass-loader'
+              {
+                loader: 'sass-loader',
+                options: sassOptions,
+              }
             ],
           },
         ],
