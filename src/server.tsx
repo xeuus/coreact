@@ -237,7 +237,7 @@ export class Server {
         }, {} as any) : {},
       };
       const forClient = proxies ? Object.keys(proxies).map(key => {
-        const {baseUrl} = proxies[key];
+        const {baseUrl = ''} = proxies[key];
         return {
           key: key,
           address: api + baseUrl,
