@@ -20,7 +20,7 @@ const useragent = require('express-useragent');
 
 export type Proxy = {
   address: string,
-  baseUrl: string,
+  baseUrl?: string,
 }
 export type ServerOptions = {
   provider: () => typeof AppProvider;
@@ -113,7 +113,7 @@ export class Server {
     const keys = Object.keys(proxies).map(a => {
       return {
         address: proxies[a].address,
-        baseUrl: proxies[a].baseUrl,
+        baseUrl: proxies[a].baseUrl || '',
       };
     });
     if (keys.length > 0) {
