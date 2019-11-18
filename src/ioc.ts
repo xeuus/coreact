@@ -43,7 +43,7 @@ export function Consumer(target: any) {
   return func as any;
 }
 
-export function Observer<T>(types: { new(context: RequestContext): T }[], ...keys: string[]) {
+export function Observer(types: { new(context: RequestContext): any }[]) {
   return function (target: any) {
 
     const original = target;
@@ -59,9 +59,6 @@ export function Observer<T>(types: { new(context: RequestContext): T }[], ...key
           const {id} = metadataOf(typ.prototype);
           const {observer} = metadataOf(context.services[id]);
           release.push(observer.listen((id: string) => {
-            if ((Array.isArray(keys) && keys.length > 0) && !keys.includes(id)) {
-              return
-            }
             delayedRefresh(this);
           }));
         });
@@ -212,7 +209,7 @@ export function BindUrl(pattern: string, name: string, role?: 'replace' | 'goto'
 }
 
 
-export function Observe<T>(type: { new(context: RequestContext): T }, ...keys: string[]) {
+export function Observe(type: { new(): any }, ...keys: string[]) {
   const {observer} = metadataOf(type.prototype);
   return (target: any, key: string) => {
     const {observers = []} = metadataOf(target);
