@@ -1,4 +1,4 @@
-export function parseCookie(cookies: string) {
+export function ParseCookies(cookies: string) {
   return cookies.split(';').reduce<any>((obj, cookieString) => {
     const splitCookie = cookieString.split('=').map(cookiePart => cookiePart.trim());
     try {
@@ -10,12 +10,12 @@ export function parseCookie(cookies: string) {
   }, {});
 }
 
-export function serializeParams(payload: any): string {
+export function SerializeQuery(payload: any): string {
   return `?${convertData(payload)}`;
 }
 
 
-export function deserializeParams(search: string): any {
+export function DeserializeQuery(search: string): any {
   let query = search;
   if (query) {
     if (query.charAt(0) === '?') {

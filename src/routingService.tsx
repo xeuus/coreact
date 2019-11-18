@@ -1,8 +1,10 @@
 import React from 'react';
 import {Action, History, Location} from 'history';
-import {matchUri} from './helpers/match';
-import {decomposeUrl, deserializeParams, serializeParams} from "./param";
-import {fillQueries, observable, runAsync, service} from "./ioc";
+import {MatchResult, MatchRoute} from './helpers/match';
+import {decomposeUrl, DeserializeQuery, SerializeQuery} from "./param";
+import {Observable, Service} from "./ioc";
+import {RequestContext} from "./requestContext";
+import {fillQueries, metadataOf} from "./shared";
 
 
 export type RoutingState = {
@@ -11,12 +13,43 @@ export type RoutingState = {
   isFirstRendering: boolean;
 }
 
-@service
+
+async function runAsync(pathname: string, search: string, context: RequestContext) {
+  const pm = context.services.reduce((acc, service) => {
+    const {fetch = []} = metadataOf(service);
+    fetch.forEach((data: any) => {
+      const {key, pattern, options} = data;
+      const {exact = false, sensitive = false, strict = false, environment = null} = options || {};
+      let matched: MatchResult = null;
+      if (environment && context.environment != environment) {
+        return
+      }
+      if (pattern) {
+
+        if (!pathname.endsWith("/"))
+          pathname += "/";
+        matched = MatchRoute(pathname, {
+          exact, sensitive, strict,
+          path: pattern,
+        });
+        if (!matched) {
+          return;
+        }
+      }
+      const func = service[key];
+      acc.push((func.bind(service))(context, matched || {}));
+    });
+    return acc;
+  }, []);
+  return await Promise.all(pm);
+}
+
+@Service
 export class RoutingService {
   history: History;
   inTimeTravelling: boolean = false;
-  @observable error: any = null;
-  @observable private state: RoutingState = {
+  @Observable error: any = null;
+  @Observable private state: RoutingState = {
     location: {
       pathname: '',
       state: undefined,
@@ -59,7 +92,8 @@ export class RoutingService {
     return this.dummy.location.search;
   }
 
-  goto(data: any, params?: { [key: string]: any }) {
+
+  private act(method: 'PUSH' | 'REPLACE', data: any, params?: { [key: string]: any }){
     let a = null;
     if (typeof data === 'string') {
       a = decomposeUrl(data);
@@ -73,7 +107,7 @@ export class RoutingService {
 
     }
     this.dummy = {
-      action: 'PUSH',
+      action: method,
       location: {
         ...this.dummy.location,
         pathname: a.pathname,
@@ -83,40 +117,25 @@ export class RoutingService {
     }
   }
 
+  goto(data: any, params?: { [key: string]: any }) {
+    this.act('PUSH', data, params);
+  }
+
   replace(data: any, params?: { [key: string]: any }) {
-    let a = null;
-    if (typeof data === 'string') {
-      a = decomposeUrl(data);
-      if (params)
-        a.search = this.setParams(a.search, params);
-    } else {
-      a = {
-        pathname: this.dummy.location.pathname,
-        search: this.setParams(this.dummy.location.search, data),
-      };
-    }
-    this.dummy = {
-      action: 'REPLACE',
-      location: {
-        ...this.dummy.location,
-        pathname: a.pathname,
-        search: a.search,
-      },
-      isFirstRendering: false,
-    };
+    this.act('REPLACE', data, params);
   }
 
   match = (pattern: string, options: { exact?: boolean, sensitive?: boolean, strict?: boolean } = {}) => {
     const {exact = true, sensitive = false, strict = false} = options;
-    return matchUri(this.pathname, {
+    return MatchRoute(this.pathname, {
       exact, sensitive, strict,
       path: pattern,
     })
   };
 
   private setParams = (search: string, params: { [key: string]: any }) => {
-    const oldParams = deserializeParams(search);
-    return serializeParams({
+    const oldParams = DeserializeQuery(search);
+    return SerializeQuery({
       ...oldParams,
       ...params,
     })

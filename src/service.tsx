@@ -1,21 +1,23 @@
 import React from 'react';
 import {clientRead} from './helpers/clientRead';
 import {RequestContext} from "./requestContext";
-import {metadata, metadataOf, services} from "./ioc";
-import {MatchResult, matchUri} from "./helpers/match";
+import {MatchResult, MatchRoute} from "./helpers/match";
 import {RoutingService} from "./routingService";
-import {deserializeParams} from "./param";
+import {DeserializeQuery} from "./param";
+import {config, metadata, metadataOf} from "./shared";
+import debounce from "lodash/debounce";
+import {Client} from "./client";
 
 
-export class Service {
-  constructor(context: RequestContext) {
-  }
 
+export const delayedPersist = debounce(() => {
+  Client.Persist();
+}, 5000);
+
+
+export interface Events {
   serviceWillLoad?(context: RequestContext): Promise<any>;
-
   serviceDidLoad?(context: RequestContext): Promise<any>;
-
-  serviceDidUpdated?(context: RequestContext): Promise<any>;
 }
 
 
@@ -41,10 +43,14 @@ export const extractDataOnServerSide = (context: RequestContext) => {
 };
 
 
+export function contextOf(bind: any) {
+  return bind['context'];
+}
+
 export const restoreDataOnClientSide = (context: RequestContext) => {
   context.services.forEach((service) => {
     const {id, save = []} = metadataOf(service);
-    const data = clientRead(`bridge${id}`);
+    const data = clientRead(`bridge${id}`, context.encrypt);
     if (data) {
       const json = JSON.parse(data);
       metadata(service, {
@@ -73,7 +79,7 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
         return
       }
       if (pattern) {
-        matched = matchUri(context.pathname, {
+        matched = MatchRoute(context.pathname, {
           exact, sensitive, strict,
           path: pattern,
         });
@@ -84,13 +90,13 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
       }
       const func = service[key];
       if (context.environment == 'server') {
-        acc.push((func.bind(service))(context, matched ? matched.params : {}));
+        acc.push((func.bind(service))(context, matched || {}));
         loaded.push({
           key,
         })
       } else {
         if (!fetched.includes(key)) {
-          acc.push((func.bind(service))(context, matched ? matched.params : {}));
+          acc.push((func.bind(service))(context, matched || {}));
         }
       }
     });
@@ -157,6 +163,9 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
             fn(key, value);
           if (context.environment != 'server') {
             observer.dispatch(key, value);
+            if(context.autoPersist){
+              delayedPersist();
+            }
           }
         }
       }
@@ -164,12 +173,11 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
   });
 }
 
-
 export function registerServices(context: RequestContext) {
   const {id: routingId} = metadataOf(RoutingService.prototype);
   let pathname = context.pathname;
   let search = context.search;
-  context.services = services.map(a => Object.create(a.prototype));
+  context.services = config.services.map(a => Object.create(a.prototype));
   let routingService: RoutingService = null;
   for (let i = 0; i < context.services.length; i++) {
     const service = context.services[i];
@@ -190,7 +198,7 @@ export function registerServices(context: RequestContext) {
           pathname = routingService.pathname;
           search = routingService.search;
         }
-        const current = deserializeParams(search);
+        const current = DeserializeQuery(search);
 
         if (q) {
           const {name, key, role = 'goto'} = q;
@@ -226,7 +234,7 @@ export function registerServices(context: RequestContext) {
 function replaceSingleMatch(url: string, pattern: string, key: string, value: string) {
   const path = url.split('/');
   const ptr = pattern.split('/');
-  if (matchUri(url, {path: pattern, exact: false})) {
+  if (MatchRoute(url, {path: pattern, exact: false})) {
     for (let i = 0; i < ptr.length; i++) {
       if (ptr[i].startsWith(':' + key)) {
         if (typeof value === 'undefined') {

@@ -1,37 +1,41 @@
 import './hello.sass';
 
-import React, {Component, Fragment} from 'react';
-import {inject, match, observant, RoutingService, service, Service} from '../src';
-import {Route, Switch} from "react-router";
+import React, {Component} from 'react';
+import {AutoWired, MatchResult, Observable, Observer, Persisted, RequestContext, Route, Service} from '../src';
 import {Link} from "react-router-dom";
 
 export type AppProps = {
   name: string;
 }
 
-@service
-export class Home extends Service {
-  routingService = inject(RoutingService, this);
 
-  @match('/', {exact: true})
-  async hello() {
-    console.log('hello')
+@Service
+export class Home {
+  @Persisted @Observable data: string = 'name!';
+  @Observable hello: string = 'world';
+
+  @Route('/hello/:name')
+  async ok(a: RequestContext, match: MatchResult) {
+    console.log(match.params)
   }
 }
 
-@observant([Home])
+
+@Observer([Home])
 export class App extends Component<AppProps> {
-  routingService = inject(RoutingService, this);
-  home = inject(Home, this);
+
+  home = AutoWired(Home, this);
 
   render() {
-    return <Fragment>
-      <Link to="/">goto home</Link>
-      <Link to="/hello">goto hello</Link>
-      <Switch>
-        <Route path="/" exact render={props => <div>Home</div>}/>
-        <Route path="/hello" exact render={props => <div>Hello world</div>}/>
-      </Switch>
-    </Fragment>
+    return <>
+      <div>hello <b className="temp-class">{this.home.data}</b></div>
+      <div>hello <b className="temp-class">{this.home.hello}</b></div>
+      <button onClick={() => {
+        this.home.data = Math.random().toString();
+      }}>Hello
+      </button>
+      <Link to="/hello/aryan/">Goto</Link>
+      <div><img src={require('./instagram.png')} alt=""/></div>
+    </>
   }
 }

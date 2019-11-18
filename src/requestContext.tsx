@@ -1,8 +1,12 @@
 export type RequestContext = {
   url: string;
   pathname: string;
+  mode: string;
   search: string;
+  encrypt: boolean;
+  version: number;
   method: string;
+  autoPersist: boolean;
   body: { [key: string]: any };
   query: { [key: string]: any };
   hostname?: string;
@@ -11,9 +15,9 @@ export type RequestContext = {
   headers: { [key: string]: any };
   useragent: any;
   baseUrl: string;
-  storagePrefix: string;
-  apiAddress: string;
-  apiPrefix: string;
+  storagePrefix?: string;
+  proxies: { [key: string]: string };
+  env: { [key: string]: string };
   dateTime: Date;
   services: any[];
   environment: 'none' | 'server' | 'client';

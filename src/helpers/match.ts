@@ -214,7 +214,7 @@ export interface MatchResult {
   params: { [key: string]: string };
 }
 
-export function matchUri(uri: string, pattern: RoutePattern): MatchResult {
+export function MatchRoute(uri: string, pattern: RoutePattern): MatchResult {
   const {path, exact = false, strict = false, sensitive = false} = pattern;
 
   const paths = [].concat(path);

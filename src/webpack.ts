@@ -1,41 +1,42 @@
-const path = require('path');
-const fs = require('fs');
-const Module = require('module');
-
 export type WebpackConfigOptions = {
   entries: { [key: string]: string[] },
-  mode: 'production' | 'development',
-  enableGzip: boolean;
   path: string;
-  publicPath: string;
+
+  mode?: 'production' | 'development',
+  enableGzip?: boolean;
+  publicPath?: string;
   externals?: any;
   sassOptions?: any;
 }
 
-
-export function register(root: string, baseUrl: string) {
-  const originalRequire = Module.prototype.require;
-  Module.prototype.require = function (p: string) {
-    if (['sass', 'scss'].includes(p.substr(-4)) || p.substr(-3) == 'css') {
-      try {
-        return originalRequire.call(this, p) as any;
-      }catch (e) {
-        return
-      }
-    } else if (['jpg', 'gif', 'bmp', 'png', 'svg'].indexOf(p.substr(-3)) > -1) {
-      const pth = this.filename.toString().split('/');
-      pth.pop();
-      return baseUrl + path.resolve(pth.join('/'), p).substr(root.length);
-    }
-    return originalRequire.call(this, p);
+module.exports = class Webpack {
+  options: WebpackConfigOptions = {
+    mode: 'production',
+    entries: {},
+    enableGzip: true,
+    path: '',
+    publicPath: '/dist/',
+    sassOptions: {},
+    externals: {},
   };
-}
-
-export default class Webpack {
-  options: WebpackConfigOptions;
 
   constructor(options: WebpackConfigOptions) {
-    this.options = options;
+    this.options = {
+      ...this.options,
+      ...options,
+    };
+  }
+
+  isolate(name: string){
+    if(name) {
+      if(name == '*'){
+        this.options.path += '/default';
+        return
+      }
+      const path = '/'+name;
+      this.options.path += path;
+      this.options.publicPath  = path + this.options.publicPath
+    }
   }
 
   config = () => {
@@ -104,7 +105,14 @@ export default class Webpack {
             use: [
               isDevelopment ? 'style-loader' : MiniCssExtractPlugin.loader,
               'css-loader',
-              'postcss-loader',
+              {
+                loader: 'postcss-loader',
+                options: {
+                  plugins: [
+                    require('autoprefixer')()
+                  ]
+                }
+              },
               {
                 loader: 'sass-loader',
                 options: sassOptions,

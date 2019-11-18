@@ -16,8 +16,15 @@ export class ViewHolder extends Component<ViewHolderProps, ViewHolderState> {
 
   componentDidMount(): void {
     const {process} = this.props;
-    process().then(success => this.setState({success: true}))
-      .catch(failure => this.setState({failure: true}));
+    (async ()=>{
+      try{
+        await process();
+        this.setState({success: true});
+      }catch (e) {
+        this.setState({failure: true})
+        throw e;
+      }
+    })();
   }
 
   render() {

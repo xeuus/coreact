@@ -1,13 +1,18 @@
 import React from 'react';
-import {AppProvider, RequestContext} from '../src';
-import {App} from './app';
+import {AppProvider, AutoWired, RequestContext} from '../src';
+import {App, Home} from './app';
 
-export default class Provider extends AppProvider {
-  async providerWillLoad(context: RequestContext) {
+class Provider extends AppProvider {
+
+  home = AutoWired(Home, this);
+
+  async providerDidLoad(context: RequestContext) {
     this.application = <App name="aryan"/>;
     this.beginOfBody = <noscript>
-      Hello Aryan
+      Hello {this.home.hello}
     </noscript>;
   }
 }
 
+
+module.exports = Provider;

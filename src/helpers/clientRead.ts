@@ -3,18 +3,18 @@ import enc from 'crypto-js/enc-utf8';
 import {dateTime, viewState} from './viewState';
 
 
-export const clientRead = (id: string) => {
+export const clientRead = (id: string, encrypt: boolean) => {
   const element = document.getElementById(id) as HTMLInputElement;
   if (!element) {
     return null;
   }
-  return AES.decrypt(element.value, viewState + dateTime).toString(enc);
+  return encrypt  ? AES.decrypt(element.value, viewState + dateTime).toString(enc) : element.value;
 };
 
-export const clientEncrypt = (content: string, key: string) => {
-  return AES.encrypt(content, key).toString();
+export const clientEncrypt = (content: string, key: string, encrypt: boolean) => {
+  return encrypt ? AES.encrypt(content, key).toString() : content;
 };
 
-export const clientDecrypt = (content: string, key: string) => {
-  return AES.decrypt(content, key).toString(enc);
+export const clientDecrypt = (content: string, key: string, encrypt: boolean) => {
+  return encrypt ? AES.decrypt(content, key).toString(enc) : content;
 };

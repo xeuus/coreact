@@ -4,7 +4,7 @@
     "target": "es5",
     "module": "commonjs",
     "strict": false,
-    "declaration": true,
+    "declaration": false,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
     "noImplicitAny": true,
@@ -25,6 +25,7 @@
     "paths": {}
   },
   "include": [
-    "src/**/*.ts*"
+    "../src/**/*.ts*",
+    "./**/*.ts*"
   ]
 }

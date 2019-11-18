@@ -4,7 +4,7 @@ import {RequestContext} from "./requestContext";
 export class AppProvider {
   context: RequestContext = null;
   name: string = 'app';
-  storagePrefix?: string = 'service';
+  storagePrefix?: string = 'app';
   splash: ReactNode = null;
   application: ReactNode = null;
   beginOfHead: ReactNode = null;
@@ -13,12 +13,6 @@ export class AppProvider {
   endOfBody: ReactNode = null;
 
   constructor(context: RequestContext) {
-    this.application = null;
-    this.splash = null;
-    this.beginOfHead = null;
-    this.endOfHead = null;
-    this.beginOfBody = null;
-    this.endOfBody = null;
     this.context = context;
   }
 

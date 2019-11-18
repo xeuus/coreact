@@ -20,6 +20,7 @@ function s4() {
     .toString(16)
     .substring(1);
 }
+
 export function guid() {
   return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
     s4() + '-' + s4() + s4() + s4();

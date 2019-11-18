@@ -3,6 +3,11 @@
 .vscode
 .env
 dist
-example-bundle
-example-dist
+example/bundle
+example/dist
 node_modules
+bundle
+*.bin
+*.sqlite
+run.sh
+*.log
