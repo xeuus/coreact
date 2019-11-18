@@ -29,6 +29,7 @@ export type ServerOptions = {
   bundleDir: [string, string];
   webpackOptions: any;
   rootPath: string;
+  srcPath: string;
 
   mode?: string,
   envKeys?: string[];
@@ -61,6 +62,7 @@ export class Server {
     publicDir: ['/assets', '.'],
     bundleDir: ['/dist', '.'],
     rootPath: '.',
+    srcPath: '.',
   };
 
   constructor(options: ServerOptions) {
@@ -94,8 +96,13 @@ export class Server {
     } else if (baseUrl.endsWith('*')) {
       baseUrl = baseUrl.substring(0, baseUrl.length - 1);
     }
-    const index = this.options.rootPath.lastIndexOf(this.options.bundleDir[0]);
-    RequireMiddleware(this.options.rootPath, baseUrl + this.options.rootPath.substr(index));
+
+    const bundleUri = baseUrl + bundleDir[0];
+    const publicUri = baseUrl + publicDir[0];
+
+
+    const pth = this.options.rootPath.substr(this.options.srcPath.length);
+    RequireMiddleware(this.options.rootPath, baseUrl + bundleUri + pth);
 
     const provider = this.options.provider();
 
@@ -104,9 +111,6 @@ export class Server {
       res.end();
     });
 
-
-    const bundleUri = baseUrl + bundleDir[0];
-    const publicUri = baseUrl + publicDir[0];
 
 
     const api = baseUrl + apiPrefix;

@@ -17,7 +17,8 @@ const server = new Server({
   publicDir: ['/assets', path.resolve(__dirname, '../../assets')],
   bundleDir: ['/dist', path.resolve(__dirname, '../../bundle')],
   webpackOptions: require('../../webpack.config.js'),
-  rootPath: path.resolve(__dirname, '.'),
+  rootPath: path.resolve(__dirname, '..'),
+  srcPath: path.resolve(__dirname, '.'),
 });
 server.isolate('*');
 server.start(app);
