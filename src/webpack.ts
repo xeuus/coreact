@@ -9,7 +9,7 @@ export type WebpackConfigOptions = {
   sassOptions?: any;
 }
 
-module.exports = class Webpack {
+export class Webpack {
   options: WebpackConfigOptions = {
     mode: 'production',
     entries: {},

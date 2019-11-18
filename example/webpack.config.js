@@ -1,5 +1,5 @@
 const path = require('path');
-const Webpack = require('./dist/src/webpack');
+const Webpack = require('./dist/src/webpack').Webpack;
 const instance = new Webpack({
   mode: process.env.NODE_ENV,
   entries: {

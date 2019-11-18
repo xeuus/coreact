@@ -109,6 +109,11 @@ export function Piped(target: any, key: string) {
   });
 }
 
+export interface Events {
+  serviceWillLoad?(context: RequestContext): Promise<any>;
+  serviceDidLoad?(context: RequestContext): Promise<any>;
+}
+
 export function Persisted(target: any, key: string) {
   const {persist = []} = metadataOf(target);
   metadata(target, {

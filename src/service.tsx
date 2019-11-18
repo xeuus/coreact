@@ -15,11 +15,6 @@ export const delayedPersist = debounce(() => {
 }, 5000);
 
 
-export interface Events {
-  serviceWillLoad?(context: RequestContext): Promise<any>;
-  serviceDidLoad?(context: RequestContext): Promise<any>;
-}
-
 
 export const extractDataOnServerSide = (context: RequestContext) => {
   return context.services.reduce((acc, service) => {
