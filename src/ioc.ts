@@ -1,7 +1,8 @@
 import {RequestContext} from "./requestContext";
 import {EventBus} from "./eventBus";
 import {CoreContext} from "./context";
-import {config, delayedRefresh, metadata, metadataOf} from "./shared";
+import {config, metadata, metadataOf} from "./shared";
+import debounce from "lodash/debounce";
 
 
 export function Consumer(target: any) {
@@ -43,7 +44,7 @@ export function Consumer(target: any) {
   return func as any;
 }
 
-export function Observer(types: { new(context: RequestContext): any }[]) {
+export function Observer(types: { new(): any }[], ...keys: string[]) {
   return function (target: any) {
 
     const original = target;
@@ -55,11 +56,23 @@ export function Observer(types: { new(context: RequestContext): any }[]) {
       const release: any[] = [];
       const originalDidMount = this.componentDidMount;
       this.componentDidMount = function (...args: any[]) {
+        this.delayedRefresh = debounce(() => {
+          this.forceUpdate(()=>{
+            if(this.serviceDidUpdate){
+              this.serviceDidUpdate.apply(this)
+            }
+          });
+        }, 30);
+
         types.forEach(typ => {
           const {id} = metadataOf(typ.prototype);
           const {observer} = metadataOf(context.services[id]);
-          release.push(observer.listen((id: string) => {
-            delayedRefresh(this);
+          release.push(observer.listen((id: string, value: any) => {
+            if ((Array.isArray(keys) && keys.length > 0) && !keys.includes(id)) {
+              return
+            }
+
+            this.delayedRefresh(this);
           }));
         });
         observers.forEach((data: any) => {

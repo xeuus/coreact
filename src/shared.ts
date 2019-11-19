@@ -1,4 +1,3 @@
-import debounce from "lodash/debounce";
 import {RequestContext} from "./requestContext";
 import {DeserializeQuery} from "./param";
 import {MatchRoute} from "./helpers/match";
@@ -7,10 +6,6 @@ export const config = {
   counter: 0,
   services: [] as any[],
 };
-
-export const delayedRefresh = debounce((context: any) => {
-  context.forceUpdate();
-}, 30);
 
 export function metadataOf(target: any) {
   return target.__metadata__ || {};
