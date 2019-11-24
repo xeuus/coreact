@@ -59,12 +59,12 @@ export class Client {
     const app = <ViewHolder
       splash={p.splash}
       process={async () => {
-        await gatherMethods(context, 'serviceWillLoad');
-        await p.providerWillLoad(context);
-        context.storagePrefix = p.storagePrefix;
         registerPersistClient(context);
         restorePersistedDataOnClientSide(context);
         restoreDataOnClientSide(context);
+        await gatherMethods(context, 'serviceWillLoad');
+        await p.providerWillLoad(context);
+        context.storagePrefix = p.storagePrefix;
         await gatherAsyncProperties(context);
         await p.providerDidLoad(context);
         await gatherMethods(context, 'serviceDidLoad');
