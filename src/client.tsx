@@ -46,6 +46,7 @@ export class Client {
       baseUrl,
       proxies: system.proxies,
       version: system.version,
+      storagePrefix: system.storagePrefix,
       env: system.env,
       dateTime: new Date(dateTime),
       services: [],
@@ -64,7 +65,6 @@ export class Client {
         restoreDataOnClientSide(context);
         await gatherMethods(context, 'serviceWillLoad');
         await p.providerWillLoad(context);
-        context.storagePrefix = p.storagePrefix;
         await gatherAsyncProperties(context);
         await p.providerDidLoad(context);
         await gatherMethods(context, 'serviceDidLoad');

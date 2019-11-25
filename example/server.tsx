@@ -19,6 +19,7 @@ const server = new Server({
   webpackOptions: require('../../webpack.config.js'),
   rootPath: path.resolve(__dirname, '..'),
   srcPath: path.resolve(__dirname, '.'),
+  storagePrefix: 'app',
 });
 server.isolate('*');
 server.start(app);

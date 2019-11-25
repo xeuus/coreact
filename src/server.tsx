@@ -30,6 +30,7 @@ export type ServerOptions = {
   webpackOptions: any;
   rootPath: string;
   srcPath: string;
+  storagePrefix: string;
 
   mode?: string,
   envKeys?: string[];
@@ -63,6 +64,7 @@ export class Server {
     bundleDir: ['/dist', '.'],
     rootPath: '.',
     srcPath: '.',
+    storagePrefix: 'app',
   };
 
   constructor(options: ServerOptions) {
@@ -86,7 +88,7 @@ export class Server {
 
   start(app: Express) {
 
-    const {match, encrypt, version, envKeys, mode, delayedPersist, apiPrefix, proxies, assets, enableGzip, webpackOptions, publicDir, bundleDir, allowRedirect} = this.options;
+    const {match, storagePrefix, encrypt, version, envKeys, mode, delayedPersist, apiPrefix, proxies, assets, enableGzip, webpackOptions, publicDir, bundleDir, allowRedirect} = this.options;
 
     const proxyServer = httpProxy.createProxyServer() as any;
 
@@ -222,7 +224,7 @@ export class Server {
         dateTime: now,
         baseUrl: baseUrl,
         environment: 'server',
-        storagePrefix: '',
+        storagePrefix: storagePrefix,
         version: version,
         encrypt: encrypt,
         env: envKeys.reduce((acc, key) => {
@@ -298,6 +300,7 @@ export class Server {
                     delayedPersist: delayedPersist,
                     version: version,
                     encrypt: encrypt,
+                    storagePrefix: storagePrefix,
                     mode: mode,
                     proxies: forClient,
                     env: envKeys.reduce((acc, key) => {

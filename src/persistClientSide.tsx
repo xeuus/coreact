@@ -55,6 +55,7 @@ export const restorePersistedDataOnClientSide = (context: RequestContext) => {
       localStorage.setItem(`${context.storagePrefix}_version`, context.version.toString());
       return
     }
+
     context.services.forEach((service) => {
       const {id, persist = []} = metadataOf(service);
       if (persist.length > 0) {
