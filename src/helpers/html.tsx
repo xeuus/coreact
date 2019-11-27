@@ -1,6 +1,5 @@
 import React from 'react';
 import {checkRtl} from './checkRtl';
-
 export type HtmlProps = {
   id?: string;
   beginHead?: React.ReactNode;
@@ -11,7 +10,6 @@ export type HtmlProps = {
   children?: string | React.ReactNode;
   locale?: string;
 }
-
 export const Html = (props: HtmlProps) => {
   const {id = 'app', locale = 'en', beginHead, endHead, beginBody, endBody, baseUrl, children} = props;
   return <html lang={locale} dir={checkRtl(locale) ? 'rtl' : 'ltr'}>

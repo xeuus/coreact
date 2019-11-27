@@ -3,15 +3,12 @@ import {Action, createBrowserHistory, Location} from "history";
 import {baseUrl} from "./helpers/viewState";
 import {Router} from "react-router";
 import {RoutingService} from "./routingService";
-import {Consumer, AutoWired, Observe} from "./ioc";
-
+import {AutoWired, Consumer, Observe} from "./ioc";
 export type ConnectedRouterProps = {}
-
 @Consumer
 export class ConnectedRouter extends PureComponent<ConnectedRouterProps> {
   unsubscribe: any = null;
   routing = AutoWired(RoutingService, this);
-
   constructor(props: ConnectedRouterProps, context: any) {
     super(props, context);
     const history = createBrowserHistory({
@@ -32,7 +29,6 @@ export class ConnectedRouter extends PureComponent<ConnectedRouterProps> {
     this.unsubscribe = history.listen(handleLocationChange);
     handleLocationChange(history.location, history.action, true);
   }
-
   @Observe(RoutingService)
   observer = () => {
     const history = this.routing.history;
@@ -46,7 +42,6 @@ export class ConnectedRouter extends PureComponent<ConnectedRouterProps> {
       search: searchInHistory,
       hash: hashInHistory,
     } = history.location;
-
     if (pathnameInHistory !== pathnameInStore || searchInHistory !== searchInStore || hashInHistory !== hashInStore) {
       this.routing.inTimeTravelling = true;
       history[this.routing.dummy.action == 'PUSH' ? 'push' : 'replace']({
@@ -56,11 +51,9 @@ export class ConnectedRouter extends PureComponent<ConnectedRouterProps> {
       })
     }
   };
-
   componentWillUnmount(): void {
     this.unsubscribe && this.unsubscribe();
   }
-
   render() {
     const {children} = this.props;
     const {history} = this.routing;

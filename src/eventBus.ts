@@ -1,6 +1,5 @@
 export type Listener = (...args: any[]) => any;
 export type Unsubscribe = () => any;
-
 export class EventBus {
   listeners: Listener[] = [];
   dispatch = (...args: any[]) => {

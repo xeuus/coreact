@@ -1,9 +1,7 @@
 let base64token: string = 'JjmDBehPny8oL96N.GIbZ7kSlY5uaMQTitHFrVEf2s3UgqxvAR0OKp_-cXwWzd41C';
-
 function getChar(a: any) {
   return String.fromCharCode(a);
 }
-
 function encode(e: string) {
   let t = '';
   let n;
@@ -23,7 +21,6 @@ function encode(e: string) {
   }
   return t;
 }
-
 function decode(e: string) {
   let t = '';
   let n = 0;
@@ -48,12 +45,10 @@ function decode(e: string) {
   }
   return t;
 }
-
 export class Base64 {
   static config(cipher: string) {
     base64token = cipher;
   }
-
   static decode(e: string, pass = base64token): string {
     let t = '';
     let s;
@@ -66,7 +61,6 @@ export class Base64 {
       o = pass.indexOf(e.charAt(f++));
       u = pass.indexOf(e.charAt(f++));
       a = pass.indexOf(e.charAt(f++));
-
       t = t + getChar(s << 2 | o >> 4);
       if (u !== 64) {
         t = t + getChar((o & 15) << 4 | u >> 2);
@@ -77,7 +71,6 @@ export class Base64 {
     }
     return decode(t);
   }
-
   static encode(phrase: string, pass = base64token): string {
     let t = '';
     let n;

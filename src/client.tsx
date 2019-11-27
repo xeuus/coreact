@@ -12,17 +12,8 @@ import {RequestContext} from "./requestContext";
 import {ContextProvider} from "./context";
 import {clientRead} from "./helpers/clientRead";
 import {fillQueries} from "./shared";
-
-
 export class Client {
-
-
-  static Persist = () => {
-  };
-  static ClearStorage = () => {
-  };
   constructor(provider: typeof AppProvider) {
-
     let proto = window.location.protocol;
     const idx = proto.indexOf(':');
     proto = proto.substr(0, idx);
@@ -59,6 +50,7 @@ export class Client {
     const element = document.getElementById(p.name);
     const app = <ViewHolder
       splash={p.splash}
+      error={p.failure}
       process={async () => {
         registerPersistClient(context);
         restorePersistedDataOnClientSide(context);
@@ -73,7 +65,6 @@ export class Client {
         <ConnectedRouter>{p.application}</ConnectedRouter>
       </ContextProvider>
     }</ViewHolder>;
-
     if (context.mode != 'development') {
       hydrate(app, element);
       return () => {
@@ -87,4 +78,8 @@ export class Client {
       return update;
     }
   }
+  static Persist = () => {
+  };
+  static ClearStorage = () => {
+  };
 }

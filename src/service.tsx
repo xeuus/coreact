@@ -7,15 +7,9 @@ import {DeserializeQuery} from "./param";
 import {config, metadata, metadataOf} from "./shared";
 import debounce from "lodash/debounce";
 import {Client} from "./client";
-
-
-
 export const delayedPersist = debounce(() => {
   Client.Persist();
 }, 5000);
-
-
-
 export const extractDataOnServerSide = (context: RequestContext) => {
   return context.services.reduce((acc, service) => {
     const {id, save = [], loaded = []} = metadataOf(service);
@@ -36,12 +30,9 @@ export const extractDataOnServerSide = (context: RequestContext) => {
     return acc;
   }, {});
 };
-
-
 export function contextOf(bind: any) {
   return bind['context'];
 }
-
 export const restoreDataOnClientSide = (context: RequestContext) => {
   context.services.forEach((service) => {
     const {id, save = []} = metadataOf(service);
@@ -60,7 +51,6 @@ export const restoreDataOnClientSide = (context: RequestContext) => {
     }
   });
 };
-
 export const gatherAsyncProperties = async (context: RequestContext) => {
   const pm = context.services.reduce((acc, service) => {
     const {fetch = [], fetched = []} = metadataOf(service);
@@ -69,7 +59,6 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
       const {key, pattern, options} = data;
       let matched: MatchResult = null;
       const {exact = false, sensitive = false, strict = false, environment = null} = options;
-
       if (environment && context.environment != environment) {
         return
       }
@@ -78,7 +67,6 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
           exact, sensitive, strict,
           path: pattern,
         });
-
         if (!matched) {
           return;
         }
@@ -102,7 +90,6 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
   }, []);
   return await Promise.all(pm);
 };
-
 export const gatherMethods = async (context: RequestContext, name: string) => {
   const pm = context.services.reduce((acc, service) => {
     if (service[name]) {
@@ -112,8 +99,6 @@ export const gatherMethods = async (context: RequestContext, name: string) => {
   }, []);
   return await Promise.all(pm);
 };
-
-
 function initService(context: RequestContext, service: any, fn?: (key: string, value: any) => any) {
   const {observer, observables = [], observers = [], query = []} = metadataOf(service);
   Object.defineProperty(service, 'context', {
@@ -158,7 +143,7 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
             fn(key, value);
           if (context.environment != 'server') {
             observer.dispatch(key, value);
-            if(context.autoPersist){
+            if (context.autoPersist) {
               delayedPersist();
             }
           }
@@ -167,7 +152,6 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
     });
   });
 }
-
 export function registerServices(context: RequestContext) {
   const {id: routingId} = metadataOf(RoutingService.prototype);
   let pathname = context.pathname;
@@ -194,7 +178,6 @@ export function registerServices(context: RequestContext) {
           search = routingService.search;
         }
         const current = DeserializeQuery(search);
-
         if (q) {
           const {name, key, role = 'goto'} = q;
           const alias = name || key;
@@ -225,7 +208,6 @@ export function registerServices(context: RequestContext) {
     }
   }
 }
-
 function replaceSingleMatch(url: string, pattern: string, key: string, value: string) {
   const path = url.split('/');
   const ptr = pattern.split('/');

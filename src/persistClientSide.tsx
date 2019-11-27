@@ -2,8 +2,6 @@ import {clientDecrypt, clientEncrypt} from "./helpers/clientRead";
 import {RequestContext} from "./requestContext";
 import {metadataOf} from "./shared";
 import {Client} from "./client";
-
-
 export const registerPersistClient = (context: RequestContext) => {
   Client.Persist = () => {
     context.services.forEach((service) => {
@@ -20,7 +18,6 @@ export const registerPersistClient = (context: RequestContext) => {
       }
     });
   };
-
   Client.ClearStorage = () => {
     context.services.forEach((service) => {
       const {id} = metadataOf(service);
@@ -28,23 +25,18 @@ export const registerPersistClient = (context: RequestContext) => {
       localStorage.removeItem(key)
     });
   };
-
   let lock = false;
-
   function lockedSave() {
     if (!lock) {
       lock = true;
       Client.Persist();
     }
   }
-
   window.addEventListener('beforeunload', lockedSave);
   window.addEventListener('pagehide', lockedSave);
   window.addEventListener('visibilitychange', lockedSave);
 };
-
 export const restorePersistedDataOnClientSide = (context: RequestContext) => {
-
   if (typeof window.localStorage != undefined) {
     const version = localStorage.getItem(`${context.storagePrefix}_version`) || 1;
     if (version != context.version) {
@@ -55,7 +47,6 @@ export const restorePersistedDataOnClientSide = (context: RequestContext) => {
       localStorage.setItem(`${context.storagePrefix}_version`, context.version.toString());
       return
     }
-
     context.services.forEach((service) => {
       const {id, persist = []} = metadataOf(service);
       if (persist.length > 0) {

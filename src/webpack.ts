@@ -1,14 +1,12 @@
 export type WebpackConfigOptions = {
   entries: { [key: string]: string[] },
   path: string;
-
   mode?: 'production' | 'development',
   enableGzip?: boolean;
   publicPath?: string;
   externals?: any;
   sassOptions?: any;
 }
-
 export class Webpack {
   options: WebpackConfigOptions = {
     mode: 'production',
@@ -19,37 +17,32 @@ export class Webpack {
     sassOptions: {},
     externals: {},
   };
-
   constructor(options: WebpackConfigOptions) {
     this.options = {
       ...this.options,
       ...options,
     };
   }
-
-  isolate(name: string){
-    if(name) {
-      if(name == '*'){
+  isolate(name: string) {
+    if (name) {
+      if (name == '*') {
         this.options.path += '/default';
         return
       }
-      const path = '/'+name;
+      const path = '/' + name;
       this.options.path += path;
-      this.options.publicPath  = path + this.options.publicPath
+      this.options.publicPath = path + this.options.publicPath
     }
   }
-
   config = () => {
     const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
     const webpack = require('webpack');
     const MiniCssExtractPlugin = require('mini-css-extract-plugin');
     const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
     const TerserPlugin = require('terser-webpack-plugin');
-
     const {enableGzip, path, publicPath, entries, mode, externals = {}, sassOptions = {}} = this.options;
     const CompressionPlugin = enableGzip && require('compression-webpack-plugin');
     const isDevelopment = mode === 'development';
-
     return {
       mode,
       devtool: 'none',
@@ -97,7 +90,6 @@ export class Webpack {
                 }
               }
             ]
-
           },
           {
             test: /\.(sass|scss|css)$/,

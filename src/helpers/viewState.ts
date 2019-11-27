@@ -1,10 +1,8 @@
 import {isClient} from './isClient';
-
 export let viewState: string = '';
 export let dateTime: string = '';
 export let token: string = '';
 export let baseUrl: string = '';
-
 export const readMeta = (metaId: string) => {
   const element = document.getElementById(metaId);
   if (!element) {
@@ -12,7 +10,6 @@ export const readMeta = (metaId: string) => {
   }
   return element.getAttribute('content');
 };
-
 (() => {
   if (isClient()) {
     viewState = readMeta('app-view-state');

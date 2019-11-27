@@ -5,15 +5,11 @@ import {decomposeUrl, DeserializeQuery, SerializeQuery} from "./param";
 import {Observable, Service} from "./ioc";
 import {RequestContext} from "./requestContext";
 import {fillQueries, metadataOf} from "./shared";
-
-
 export type RoutingState = {
   location: Location;
   action: Action;
   isFirstRendering: boolean;
 }
-
-
 async function runAsync(pathname: string, search: string, context: RequestContext) {
   const pm = context.services.reduce((acc, service) => {
     const {fetch = []} = metadataOf(service);
@@ -25,7 +21,6 @@ async function runAsync(pathname: string, search: string, context: RequestContex
         return
       }
       if (pattern) {
-
         if (!pathname.endsWith("/"))
           pathname += "/";
         matched = MatchRoute(pathname, {
@@ -43,7 +38,6 @@ async function runAsync(pathname: string, search: string, context: RequestContex
   }, []);
   return await Promise.all(pm);
 }
-
 @Service
 export class RoutingService {
   history: History;
@@ -60,11 +54,9 @@ export class RoutingService {
     action: null,
     isFirstRendering: true,
   };
-
   get dummy() {
     return this.state;
   }
-
   set dummy(value: RoutingState) {
     const {context} = this as any;
     fillQueries(value.location.pathname, value.location.search, context);
@@ -79,21 +71,29 @@ export class RoutingService {
       this.state = value;
     }
   }
-
   get url() {
     return this.dummy.location.pathname + this.dummy.location.search;
   }
-
   get pathname() {
     return this.dummy.location.pathname;
   }
-
   get search() {
     return this.dummy.location.search;
   }
-
-
-  private act(method: 'PUSH' | 'REPLACE', data: any, params?: { [key: string]: any }){
+  goto(data: any, params?: { [key: string]: any }) {
+    this.act('PUSH', data, params);
+  }
+  replace(data: any, params?: { [key: string]: any }) {
+    this.act('REPLACE', data, params);
+  }
+  match = (pattern: string, options: { exact?: boolean, sensitive?: boolean, strict?: boolean } = {}) => {
+    const {exact = true, sensitive = false, strict = false} = options;
+    return MatchRoute(this.pathname, {
+      exact, sensitive, strict,
+      path: pattern,
+    })
+  };
+  private act(method: 'PUSH' | 'REPLACE', data: any, params?: { [key: string]: any }) {
     let a = null;
     if (typeof data === 'string') {
       a = decomposeUrl(data);
@@ -104,7 +104,6 @@ export class RoutingService {
         pathname: this.dummy.location.pathname,
         search: this.setParams(this.dummy.location.search, data),
       };
-
     }
     this.dummy = {
       action: method,
@@ -116,23 +115,6 @@ export class RoutingService {
       isFirstRendering: false,
     }
   }
-
-  goto(data: any, params?: { [key: string]: any }) {
-    this.act('PUSH', data, params);
-  }
-
-  replace(data: any, params?: { [key: string]: any }) {
-    this.act('REPLACE', data, params);
-  }
-
-  match = (pattern: string, options: { exact?: boolean, sensitive?: boolean, strict?: boolean } = {}) => {
-    const {exact = true, sensitive = false, strict = false} = options;
-    return MatchRoute(this.pathname, {
-      exact, sensitive, strict,
-      path: pattern,
-    })
-  };
-
   private setParams = (search: string, params: { [key: string]: any }) => {
     const oldParams = DeserializeQuery(search);
     return SerializeQuery({

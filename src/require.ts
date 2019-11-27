@@ -1,4 +1,4 @@
-export function RequireMiddleware(root: string, baseUrl: string){
+export function RequireMiddleware(root: string, baseUrl: string) {
   const path = require('path');
   const Module = require('module');
   const originalRequire = Module.prototype.require;

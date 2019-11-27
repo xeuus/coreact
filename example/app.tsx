@@ -27,6 +27,9 @@ export class App extends Component<AppProps> {
   home = AutoWired(Home, this);
 
   render() {
+
+    const a = null as string;
+    a.toString();
     return <>
       <div>hello <b className="temp-class">{this.home.data}</b></div>
       <div>hello <b className="temp-class">{this.home.hello}</b></div>

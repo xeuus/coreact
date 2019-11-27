@@ -9,12 +9,9 @@ export function ParseCookies(cookies: string) {
     return obj
   }, {});
 }
-
 export function SerializeQuery(payload: any): string {
   return `?${convertData(payload)}`;
 }
-
-
 export function DeserializeQuery(search: string): any {
   let query = search;
   if (query) {
@@ -27,8 +24,6 @@ export function DeserializeQuery(search: string): any {
   }
   return {};
 }
-
-
 function check(value: any) {
   if (typeof value === 'undefined') {
     return;
@@ -49,7 +44,6 @@ function check(value: any) {
     return 'null';
   }
 }
-
 function convertData(data: any) {
   return Object.keys(data).reduce((acc, key) => {
     const value = data[key];
@@ -85,7 +79,6 @@ function convertData(data: any) {
     return acc;
   }, []).join('&');
 }
-
 function parseBlock(block: string) {
   const obj = {} as any;
   let ks = 0;
@@ -131,12 +124,10 @@ function parseBlock(block: string) {
   return Object.keys(obj).reduce((acc, key) => {
     const idx = key.indexOf('[');
     if (idx > -1) {
-
       const nextIdx = key.indexOf(']', idx);
       if (nextIdx > -1) {
         const k = key.substring(0, idx);
         const i = +key.substring(idx + 1, nextIdx);
-
         acc[k] = acc[k] || [];
         acc[k][i] = obj[key];
       }
@@ -146,7 +137,6 @@ function parseBlock(block: string) {
     return acc;
   }, {} as any);
 }
-
 export function decomposeUrl(url: string) {
   const spl = url.split('?');
   if (!spl[0].endsWith('/'))
