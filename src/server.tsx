@@ -324,6 +324,9 @@ export class Server {
                 if (name.substr(-3) === 'css') {
                   return <link key={i} href={uri} rel="stylesheet" type="text/css"/>;
                 }
+                if (name.substr(-2) === 'js' || name.substr(-5) === 'js.gz') {
+                  return <script key={i} src={uri} type="application/javascript"/>;
+                }
               })}
             </>}>
             {p.failure(e)}
