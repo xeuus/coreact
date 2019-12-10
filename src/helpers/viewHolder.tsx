@@ -32,7 +32,6 @@ export class ViewHolder extends Component<ViewHolderProps, ViewHolderState> {
       if (success) {
         return children ? children(success) : null;
       }
-
       if (failure) {
         return error ? error(failure) : null;
       }

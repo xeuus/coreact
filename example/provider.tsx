@@ -1,35 +1,18 @@
-import React from 'react';
-import {AppProvider, AutoWired, RequestContext} from '../src';
-import {App, Home} from './app';
+import React, {Fragment} from 'react';
+import {AppProvider, RequestContext} from "../src";
+import {App} from "./app";
 
-module.exports = class extends AppProvider {
-
-  home = AutoWired(Home, this);
+module.exports = class Provider extends AppProvider {
   constructor(context: RequestContext) {
     super(context);
-    this.application = <App name="aryan"/>;
-    this.failure = (e: any) => {
-      return <div className="container py-2" dir="ltr">
-        <label>Uncaught Exception [CLIENT]:</label>
-        <pre className="scrollable-horizontal">
-          {JSON.stringify(e, (key, value) => {
-            if(typeof value == 'object') {
-              const obj = {};
-              Object.getOwnPropertyNames(value).forEach(name => {
-                Object.defineProperty(obj, name, {
-                  enumerable: true,
-                  value: value[name],
-                })
-              });
-              return obj;
-            }
-            return value;
-          }, '  ')}
-        </pre>
-      </div>
-    };
-    this.beginOfBody = <noscript>
-      Hello {this.home.hello}
-    </noscript>;
+  }
+  async providerWillLoad(context: RequestContext) {
+    this.application = <App/>;
+    this.beginOfHead = <Fragment>
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no, user-scalable=no"/>
+    </Fragment>;
+    this.failure = err => <div>somthing went wrong</div>;
+    this.splash = <div>loading</div>;
   }
 };
+

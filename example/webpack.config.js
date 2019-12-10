@@ -5,7 +5,7 @@ const instance = new Webpack({
   entries: {
     example: [
       './example/client.ts',
-      './example/app.scss'
+      './example/app.sass'
     ]
   },
   enableGzip: true,

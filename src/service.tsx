@@ -8,7 +8,7 @@ import {config, metadata, metadataOf} from "./shared";
 import debounce from "lodash/debounce";
 import {Client} from "./client";
 export const delayedPersist = debounce(() => {
-  Client.Persist();
+  Client.persist();
 }, 5000);
 export const extractDataOnServerSide = (context: RequestContext) => {
   return context.services.reduce((acc, service) => {
@@ -73,13 +73,19 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
       }
       const func = service[key];
       if (context.environment == 'server') {
-        acc.push((func.bind(service))(context, matched || {}));
+        acc.push(func.call(service, [{
+          ...context,
+          params: matched ? matched.params : {},
+        } as RequestContext]));
         loaded.push({
           key,
         })
       } else {
         if (!fetched.includes(key)) {
-          acc.push((func.bind(service))(context, matched || {}));
+          acc.push(func.call(service, {
+            ...context,
+            params: matched ? matched.params : {},
+          } as RequestContext));
         }
       }
     });
@@ -92,12 +98,18 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
 };
 export const gatherMethods = async (context: RequestContext, name: string) => {
   const pm = context.services.reduce((acc, service) => {
+    const {order = 0} = metadataOf(service);
     if (service[name]) {
-      acc.push(service[name](context));
+      acc.push({
+        order,
+        func: service[name].bind(service),
+      });
     }
     return acc;
-  }, []);
-  return await Promise.all(pm);
+  }, []).sort((a: any, b: any) => a.order - b.order);
+  for(let i=0;i<pm.length;i++){
+    await pm[i].func(context);
+  }
 };
 function initService(context: RequestContext, service: any, fn?: (key: string, value: any) => any) {
   const {observer, observables = [], observers = [], query = []} = metadataOf(service);

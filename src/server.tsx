@@ -183,6 +183,7 @@ export class Server {
         pathname: url.pathname,
         search: url.search,
         body: req.body || {},
+        params: {},
         query: DeserializeQuery(url.search),
         method: req.method,
         hostname: req.hostname,
@@ -234,6 +235,7 @@ export class Server {
         const saltKey = randomString(50);
         const iso = now.toISOString();
         const cipher = saltKey + iso;
+        await gatherMethods(context, 'serviceWillUnload');
         const data = extractDataOnServerSide(context);
         const keys = Object.keys(data);
         const routerContext = {} as any;

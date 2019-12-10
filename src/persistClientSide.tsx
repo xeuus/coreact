@@ -2,8 +2,9 @@ import {clientDecrypt, clientEncrypt} from "./helpers/clientRead";
 import {RequestContext} from "./requestContext";
 import {metadataOf} from "./shared";
 import {Client} from "./client";
+import {gatherMethods} from "./service";
 export const registerPersistClient = (context: RequestContext) => {
-  Client.Persist = () => {
+  Client.persist = () => {
     context.services.forEach((service) => {
       const {id, persist = []} = metadataOf(service);
       if (persist.length > 0) {
@@ -18,7 +19,7 @@ export const registerPersistClient = (context: RequestContext) => {
       }
     });
   };
-  Client.ClearStorage = () => {
+  Client.clearStorage = () => {
     context.services.forEach((service) => {
       const {id} = metadataOf(service);
       const key = `${context.storagePrefix}_bridge${id}`;
@@ -29,7 +30,12 @@ export const registerPersistClient = (context: RequestContext) => {
   function lockedSave() {
     if (!lock) {
       lock = true;
-      Client.Persist();
+      gatherMethods(context, 'serviceWillUnload').then(()=>{
+        Client.persist();
+      }).catch((e)=>{
+        console.error(e)
+        Client.persist();
+      });
     }
   }
   window.addEventListener('beforeunload', lockedSave);
@@ -38,13 +44,28 @@ export const registerPersistClient = (context: RequestContext) => {
 };
 export const restorePersistedDataOnClientSide = (context: RequestContext) => {
   if (typeof window.localStorage != undefined) {
-    const version = localStorage.getItem(`${context.storagePrefix}_version`) || 1;
+    const versionKey = `${context.storagePrefix}_version`;
+    const version = localStorage.getItem(versionKey) || 1;
+
     if (version != context.version) {
       context.services.forEach((service) => {
         const {id} = metadataOf(service);
-        localStorage.removeItem(`${context.storagePrefix}_bridge${id}`)
+        try {
+          const key = `${context.storagePrefix}_bridge${id}`;
+          if(service.migrate) {
+            const data = localStorage.getItem(key);
+            if (data) {
+              const content = clientDecrypt(data, key, context.encrypt);
+              const json = JSON.parse(content);
+              service.migrate.apply(service, json, version)
+            }
+          }
+          localStorage.removeItem(key)
+        }catch (e) {
+          console.error(e);
+        }
       });
-      localStorage.setItem(`${context.storagePrefix}_version`, context.version.toString());
+      localStorage.setItem(versionKey, context.version.toString());
       return
     }
     context.services.forEach((service) => {
@@ -64,6 +85,7 @@ export const restorePersistedDataOnClientSide = (context: RequestContext) => {
             });
           }
         } catch (e) {
+          console.error(e);
         }
       }
     });

@@ -3,41 +3,15 @@ import {EventBus} from "./eventBus";
 import {CoreContext} from "./context";
 import {config, metadata, metadataOf} from "./shared";
 import debounce from "lodash/debounce";
-export function Consumer(target: any) {
-  const original = target;
-  const func = function (props: any, context: RequestContext) {
-    const {observers = []} = metadataOf(target.prototype);
-    const component = this;
-    const release: any[] = [];
-    const originalDidMount = this.componentDidMount;
-    this.componentDidMount = function (...args: any[]) {
-      observers.forEach((data: any) => {
-        const {key, observer, keys} = data;
-        release.push(observer.listen(function (id: string, value: any) {
-          if ((Array.isArray(keys) && keys.length > 0) && !keys.includes(id)) {
-            return
-          }
-          component[key].call(component, id, value);
-        }));
-      });
-      if (originalDidMount) {
-        originalDidMount.apply(this, args);
-      }
-    };
-    const originalUnmount = this.componentWillUnmount;
-    this.componentWillUnmount = function (...args: any[]) {
-      if (originalUnmount) {
-        originalUnmount.apply(this, args)
-      }
-      release.forEach(func => func());
-    };
-    return original.call(this, props, context);
-  };
-  func.contextType = CoreContext;
-  func.prototype = original.prototype;
-  return func as any;
+
+export interface ServiceEvents {
+  serviceWillLoad?(context: RequestContext): Promise<any>;
+  serviceDidLoad?(context: RequestContext): Promise<any>;
+  serviceWillUnload?(context: RequestContext): Promise<any>;
+  migrate?(data: any, fromVersion: number): Promise<any>;
 }
-export function Observer(types: { new(): any }[], ...keys: string[]) {
+
+export function Observer(types?: { new(): any }[], ...keys: string[]) {
   return function (target: any) {
     const original = target;
     const func = function (props: any, context: RequestContext) {
@@ -45,27 +19,36 @@ export function Observer(types: { new(): any }[], ...keys: string[]) {
       const component = this;
       const release: any[] = [];
       const originalDidMount = this.componentDidMount;
-      this.componentDidMount = function (...args: any[]) {
-        this.delayedRefresh = debounce(() => {
-          this.forceUpdate(() => {
-            if (this.serviceDidUpdate) {
-              this.serviceDidUpdate.apply(this)
-            }
-          });
-        }, 30);
-        types.forEach(typ => {
-          const {id} = metadataOf(typ.prototype);
-          const {observer} = metadataOf(context.services[id]);
-          release.push(observer.listen((id: string, value: any) => {
-            if ((Array.isArray(keys) && keys.length > 0) && !keys.includes(id)) {
-              return
-            }
-            this.delayedRefresh(this);
-          }));
+      this.released = false;
+      this.delayedRefresh = debounce(() => {
+        if (this.released)
+          return;
+        this.forceUpdate(() => {
+          if (this.serviceDidUpdate) {
+            this.serviceDidUpdate.apply(this)
+          }
         });
+      }, 50);
+      this.componentDidMount = function (...args: any[]) {
+        if (types && types.length > 0) {
+          types.forEach(typ => {
+            const {id} = metadataOf(typ.prototype);
+            const {observer} = metadataOf(context.services[id]);
+            release.push(observer.listen((id: string, value: any) => {
+              if (this.released)
+                return;
+              if ((Array.isArray(keys) && keys.length > 0) && !keys.includes(id)) {
+                return
+              }
+              this.delayedRefresh && this.delayedRefresh(this);
+            }));
+          });
+        }
         observers.forEach((data: any) => {
           const {key, observer, keys} = data;
-          release.push(observer.listen(function (id: string, value: any) {
+          release.push(observer.listen((id: string, value: any) => {
+            if (this.released)
+              return;
             if ((Array.isArray(keys) && keys.length > 0) && !keys.includes(id)) {
               return
             }
@@ -78,6 +61,7 @@ export function Observer(types: { new(): any }[], ...keys: string[]) {
       };
       const originalUnmount = this.componentWillUnmount;
       this.componentWillUnmount = function (...args: any[]) {
+        this.released = true;
         if (originalUnmount) {
           originalUnmount.apply(this, args)
         }
@@ -88,6 +72,12 @@ export function Observer(types: { new(): any }[], ...keys: string[]) {
     func.contextType = CoreContext;
     func.prototype = original.prototype;
     return func as any;
+  }
+}
+export function Order(order: number) {
+  return function (target: any) {
+    metadata(target.prototype, {order});
+    return target;
   }
 }
 export function Service(target: any) {
@@ -104,10 +94,6 @@ export function Piped(target: any, key: string) {
     }]
   });
 }
-export interface Events {
-  serviceWillLoad?(context: RequestContext): Promise<any>;
-  serviceDidLoad?(context: RequestContext): Promise<any>;
-}
 export function Persisted(target: any, key: string) {
   const {persist = []} = metadataOf(target);
   metadata(target, {
@@ -116,7 +102,7 @@ export function Persisted(target: any, key: string) {
     }]
   });
 }
-export function AutoWired<T>(type: { new(context: RequestContext): T }, base: any): T {
+export function Autowired<T>(type: { new(context: RequestContext): T }, base: any): T {
   const meta = metadataOf(type.prototype);
   return base.context ? base.context.services[meta.id] : null;
 }

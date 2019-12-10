@@ -26,6 +26,7 @@ export class Client {
       url: rawUrl,
       pathname: url.pathname,
       search: url.search,
+      params: {},
       body: {},
       query: DeserializeQuery(url.search),
       method: 'GET',
@@ -78,8 +79,8 @@ export class Client {
       return update;
     }
   }
-  static Persist = () => {
+  static persist = () => {
   };
-  static ClearStorage = () => {
+  static clearStorage = () => {
   };
 }

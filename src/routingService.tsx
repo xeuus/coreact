@@ -2,7 +2,7 @@ import React from 'react';
 import {Action, History, Location} from 'history';
 import {MatchResult, MatchRoute} from './helpers/match';
 import {decomposeUrl, DeserializeQuery, SerializeQuery} from "./param";
-import {Observable, Service} from "./ioc";
+import {Observable, Order, Service} from "./ioc";
 import {RequestContext} from "./requestContext";
 import {fillQueries, metadataOf} from "./shared";
 export type RoutingState = {
@@ -32,17 +32,24 @@ async function runAsync(pathname: string, search: string, context: RequestContex
         }
       }
       const func = service[key];
-      acc.push((func.bind(service))(context, matched || {}));
+      acc.push(func.call(service, {
+        ...context,
+        params: matched ? matched.params : {},
+        query: DeserializeQuery(search),
+        url: pathname + search,
+      }));
     });
     return acc;
   }, []);
   return await Promise.all(pm);
 }
+
+
 @Service
+@Order(Number.NEGATIVE_INFINITY)
 export class RoutingService {
   history: History;
   inTimeTravelling: boolean = false;
-  @Observable error: any = null;
   @Observable private state: RoutingState = {
     location: {
       pathname: '',
@@ -64,8 +71,7 @@ export class RoutingService {
       runAsync(value.location.pathname, value.location.search, context).then(() => {
         this.state = value;
       }).catch((error) => {
-        this.error = error;
-        this.state = value;
+        throw error;
       });
     } else {
       this.state = value;

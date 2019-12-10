@@ -3,12 +3,12 @@ import {Action, createBrowserHistory, Location} from "history";
 import {baseUrl} from "./helpers/viewState";
 import {Router} from "react-router";
 import {RoutingService} from "./routingService";
-import {AutoWired, Consumer, Observe} from "./ioc";
+import {Autowired, Observe, Observer} from "./ioc";
 export type ConnectedRouterProps = {}
-@Consumer
+@Observer()
 export class ConnectedRouter extends PureComponent<ConnectedRouterProps> {
   unsubscribe: any = null;
-  routing = AutoWired(RoutingService, this);
+  routing = Autowired(RoutingService, this);
   constructor(props: ConnectedRouterProps, context: any) {
     super(props, context);
     const history = createBrowserHistory({
