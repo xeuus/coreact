@@ -1,43 +1,60 @@
-import {FromUrl, Observable, Order, Persisted, RequestContext, Route, Service, ServiceEvents} from '../../src';
+import {Autowired, Debounced, Observable, Order, Piped, RequestContext, Route, Service, Timer} from '../../src';
 import {routes} from '../routes';
+import {Networking} from "./Networking";
+import {TimerFunc} from "../../src/service";
+
 export interface Todo {
   id: number,
   message: string;
   dueDate: string;
   completed: boolean;
 }
+
 @Service
 @Order(1)
-export class TodoService implements ServiceEvents {
-  name: string = '';
-  @Persisted private counter: number = 0;
-  @Persisted @Observable todoList: Todo[] = [];
-  selectedDetail: Todo = null;
-  addTodo(message: string){
-    this.todoList = [...this.todoList, {
-      id: this.counter++,
-      message: message,
-      completed: false,
-      dueDate: new Date().toISOString(),
-    }];
+export class TodoService {
+  net = Autowired(Networking, this);
+
+  @Piped @Observable todoList: Todo[] = [];
+  @Piped @Observable currentTodo: Todo = null;
+
+
+  @Timer(1000, true)
+  some(context: RequestContext){
+    console.log(context.dateTime.getTime() - new Date().getTime());
   };
-  deleteTodo(t: Todo){
-    this.todoList = this.todoList.filter(a => a.id != t.id);
+
+  async addTodo(message: string) {
+    const response = await this.net.POST<Todo>('/todos', {
+      message
+    });
+    this.todoList = [...this.todoList, response.payload];
+
+    (this.some as any).start();
   };
-  completeTodo(t: Todo){
-    const copy = Array.from(this.todoList);
-    for (let i = 0; i < copy.length; i++) {
-      if (copy[i].id == t.id) {
-        copy[i].completed = !copy[i].completed;
-      }
-    }
-    this.todoList = copy;
+
+  async deleteTodo(todo: Todo) {
+    await this.net.DELETE('/todos', {id: todo.id});
+    this.todoList = this.todoList.filter(a => a.id != todo.id);
   };
-  @Route(routes.todoDetail(), {environment: 'client'})
-  async fetchDetail(context: RequestContext) {
-    this.selectedDetail = this.todoList.find(a => a.id == context.params.id);
+
+  async completeTodo(todo: Todo) {
+    const response = await this.net.PUT<Todo>('/todos/complete', {id: todo.id});
+    this.todoList = this.todoList.map(a => a.id == todo.id ? response.payload : a);
+    this.currentTodo = response.payload;
+  };
+
+  @Route(routes.todoList, {exact: true})
+  @Debounced(200)
+  async fetchTodosFromServer() {
+    const response = await this.net.GET<Todo[]>('/todos');
+    this.todoList = response.payload;
   }
-  async serviceDidLoad(context: RequestContext) {
-    this.name = 'salam';
-  };
+
+  @Route(routes.todoDetail(), {exact: true})
+  @Debounced(200)
+  async fetchDetail(context: RequestContext) {
+    const response = await this.net.GET<Todo>('/todos/detail', {id: context.params.id});
+    this.currentTodo = response.payload;
+  }
 }

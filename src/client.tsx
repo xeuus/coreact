@@ -12,6 +12,7 @@ import {RequestContext} from "./requestContext";
 import {ContextProvider} from "./context";
 import {clientRead} from "./helpers/clientRead";
 import {fillQueries} from "./shared";
+
 export class Client {
   constructor(provider: typeof AppProvider) {
     let proto = window.location.protocol;
@@ -58,7 +59,11 @@ export class Client {
         restoreDataOnClientSide(context);
         await gatherMethods(context, 'serviceWillLoad');
         await p.providerWillLoad(context);
-        await gatherAsyncProperties(context);
+        try {
+          gatherAsyncProperties(context);
+        } catch (e) {
+          console.error(e);
+        }
         await p.providerDidLoad(context);
         await gatherMethods(context, 'serviceDidLoad');
       }}>{
@@ -79,6 +84,7 @@ export class Client {
       return update;
     }
   }
+
   static persist = () => {
   };
   static clearStorage = () => {

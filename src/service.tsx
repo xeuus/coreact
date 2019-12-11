@@ -6,7 +6,9 @@ import {RoutingService} from "./routingService";
 import {DeserializeQuery} from "./param";
 import {config, metadata, metadataOf} from "./shared";
 import debounce from "lodash/debounce";
+import throttle from "lodash/throttle";
 import {Client} from "./client";
+
 export const delayedPersist = debounce(() => {
   Client.persist();
 }, 5000);
@@ -30,9 +32,16 @@ export const extractDataOnServerSide = (context: RequestContext) => {
     return acc;
   }, {});
 };
+
 export function contextOf(bind: any) {
   return bind['context'];
 }
+
+export type TimerFunc =  {
+  start: ()=>any
+  stop: ()=>any
+} & ((context: RequestContext) => void | false);
+
 export const restoreDataOnClientSide = (context: RequestContext) => {
   context.services.forEach((service) => {
     const {id, save = []} = metadataOf(service);
@@ -71,12 +80,12 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
           return;
         }
       }
-      const func = service[key];
+      const func = service['$' + key] || service[key];
       if (context.environment == 'server') {
-        acc.push(func.call(service, [{
+        acc.push(func.call(service, {
           ...context,
           params: matched ? matched.params : {},
-        } as RequestContext]));
+        } as RequestContext));
         loaded.push({
           key,
         })
@@ -107,12 +116,13 @@ export const gatherMethods = async (context: RequestContext, name: string) => {
     }
     return acc;
   }, []).sort((a: any, b: any) => a.order - b.order);
-  for(let i=0;i<pm.length;i++){
+  for (let i = 0; i < pm.length; i++) {
     await pm[i].func(context);
   }
 };
+
 function initService(context: RequestContext, service: any, fn?: (key: string, value: any) => any) {
-  const {observer, observables = [], observers = [], query = []} = metadataOf(service);
+  const {observer, observables = [], observers = [], actions = [], timers = []} = metadataOf(service);
   Object.defineProperty(service, 'context', {
     value: context,
     configurable: false,
@@ -120,6 +130,86 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
     writable: false,
   });
   service.constructor(context);
+
+  if (context.environment == 'client') {
+    timers.forEach((data: any) => {
+      const {key, delay, disabled} = data;
+      let timer: any = null;
+      let startDate: Date = null;
+      function recall() {
+        timer = setTimeout(() => {
+          const response = service[key].call(service, {
+            ...context,
+            dateTime: startDate,
+            query: DeserializeQuery(window.location.search),
+            pathname: window.location.pathname,
+            url: window.location.pathname+window.location.search,
+            search:window.location.search,
+          } as RequestContext);
+          if (response !== false)
+            recall();
+        }, delay)
+      }
+
+      Object.defineProperty(service[key], 'stop', {
+        writable: false,
+        enumerable: true,
+        value: function () {
+          clearTimeout(timer);
+        },
+        configurable: true,
+      });
+
+      Object.defineProperty(service[key], 'start', {
+        writable: false,
+        enumerable: true,
+        value: function () {
+
+          if(timer){
+            clearTimeout(timer);
+            timer = null;
+          }
+          startDate = new Date();
+          recall();
+        },
+        configurable: true,
+      });
+      if (!disabled) {
+
+        if(timer){
+          clearTimeout(timer);
+          timer = null;
+        }
+        startDate = new Date();
+        recall();
+      }
+    });
+  }
+  actions.forEach((data: any) => {
+    const {key, type, delay} = data;
+    let func = null;
+    if (type == 'debounce') {
+      func = debounce(service[key], delay, {trailing: true, leading: false})
+    } else if (type == 'throttle') {
+      func = throttle(service[key], delay, {trailing: true, leading: false})
+    }
+
+    if (func) {
+      Object.defineProperty(service, '$' + key, {
+        configurable: true,
+        writable: false,
+        enumerable: false,
+        value: service[key],
+      });
+      Object.defineProperty(service, key, {
+        configurable: true,
+        writable: false,
+        enumerable: true,
+        value: func,
+      });
+    }
+  });
+
   observers.forEach((data: any) => {
     const {key, observer, keys} = data;
     observer.listen(function (id: string, value: any) {
@@ -164,6 +254,7 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
     });
   });
 }
+
 export function registerServices(context: RequestContext) {
   const {id: routingId} = metadataOf(RoutingService.prototype);
   let pathname = context.pathname;
@@ -220,6 +311,7 @@ export function registerServices(context: RequestContext) {
     }
   }
 }
+
 function replaceSingleMatch(url: string, pattern: string, key: string, value: string) {
   const path = url.split('/');
   const ptr = pattern.split('/');

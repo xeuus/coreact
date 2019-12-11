@@ -229,7 +229,11 @@ export class Server {
       try {
         await gatherMethods(context, 'serviceWillLoad');
         await p.providerWillLoad(context);
-        await gatherAsyncProperties(context);
+        try{
+          await gatherAsyncProperties(context);
+        }catch (e) {
+          console.error(e);
+        }
         await p.providerDidLoad(context);
         await gatherMethods(context, 'serviceDidLoad');
         const saltKey = randomString(50);

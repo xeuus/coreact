@@ -1,4 +1,3 @@
-import {RequireMiddleware} from "../src/require";
 //
 import express from 'express';
 import {Server} from "../src/server";
@@ -14,6 +13,12 @@ const server = new Server({
     '/dist/example.js.gz',
     '/dist/example.css',
   ],
+  apiPrefix: '/api',
+  proxies: {
+    default: {
+      address: 'http://localhost:4201/api',
+    }
+  },
   publicDir: ['/assets', path.resolve(__dirname, '../../assets')],
   bundleDir: ['/dist', path.resolve(__dirname, '../../bundle')],
   webpackOptions: require('../../webpack.config.js'),

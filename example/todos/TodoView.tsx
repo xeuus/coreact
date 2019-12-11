@@ -3,9 +3,6 @@ import React, { PureComponent } from 'react';
 import { Todo, TodoService } from './TodoService';
 import {Autowired, Observer, RoutingService} from "../../src";
 import {routes} from "../routes";
-import {HelloService} from "./HelloService";
-
-
 
 interface StateType {
   message: string,
@@ -16,7 +13,6 @@ export class TodoView extends PureComponent<{}, StateType> {
 
   todo = Autowired(TodoService, this);
   router = Autowired(RoutingService, this);
-  hello = Autowired(HelloService, this);
 
   state: StateType = {
     message: '',
@@ -25,14 +21,15 @@ export class TodoView extends PureComponent<{}, StateType> {
   changeText = (message: string) => this.setState({ message });
 
   render() {
-
     const { message } = this.state;
     return <div className="todo-page-container">
       <div className="todo-wrapper">
         <div className="todo-input-container">
-          <input type="text" placeholder="Write something..." value={message}
-                 onChange={e => this.changeText(e.target.value)}/>
-          <button className="add-todo-button" onClick={()=>this.todo.addTodo(message)}>Add</button>
+          <input type="text" placeholder="Write something..." value={message} onChange={e => this.changeText(e.target.value)}/>
+          <button className="add-todo-button" onClick={()=>{
+            this.todo.addTodo(message);
+            this.setState({message:''});
+          }}>Add</button>
         </div>
         <div className="todo-list">
           {this.todo.todoList.map(t => {

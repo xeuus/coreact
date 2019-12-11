@@ -5,11 +5,13 @@ import {decomposeUrl, DeserializeQuery, SerializeQuery} from "./param";
 import {Observable, Order, Service} from "./ioc";
 import {RequestContext} from "./requestContext";
 import {fillQueries, metadataOf} from "./shared";
+
 export type RoutingState = {
   location: Location;
   action: Action;
   isFirstRendering: boolean;
 }
+
 async function runAsync(pathname: string, search: string, context: RequestContext) {
   const pm = context.services.reduce((acc, service) => {
     const {fetch = []} = metadataOf(service);
@@ -31,12 +33,15 @@ async function runAsync(pathname: string, search: string, context: RequestContex
           return;
         }
       }
-      const func = service[key];
+      const func = service['$' + key] || service[key];
       acc.push(func.call(service, {
         ...context,
         params: matched ? matched.params : {},
         query: DeserializeQuery(search),
         url: pathname + search,
+        dateTime: new Date(),
+        pathname: pathname,
+        search: search,
       }));
     });
     return acc;
@@ -61,37 +66,66 @@ export class RoutingService {
     action: null,
     isFirstRendering: true,
   };
+
   get dummy() {
     return this.state;
   }
+
   set dummy(value: RoutingState) {
     const {context} = this as any;
     fillQueries(value.location.pathname, value.location.search, context);
     if (!value.isFirstRendering) {
       runAsync(value.location.pathname, value.location.search, context).then(() => {
-        this.state = value;
+        this.state = {
+          ...value,
+          location: {
+            ...value.location,
+            state: null,
+          }
+        };
       }).catch((error) => {
-        throw error;
+        this.state = {
+          ...value,
+          location: {
+            ...value.location,
+            state: error,
+          }
+        };
       });
     } else {
       this.state = value;
     }
   }
+
   get url() {
     return this.dummy.location.pathname + this.dummy.location.search;
   }
+
   get pathname() {
     return this.dummy.location.pathname;
   }
+
   get search() {
     return this.dummy.location.search;
   }
+
   goto(data: any, params?: { [key: string]: any }) {
     this.act('PUSH', data, params);
   }
+
+  rewind() {
+    this.history.goBack();
+  }
+
+  forward() {
+    this.history.goForward();
+  }
+
+
   replace(data: any, params?: { [key: string]: any }) {
     this.act('REPLACE', data, params);
   }
+
   match = (pattern: string, options: { exact?: boolean, sensitive?: boolean, strict?: boolean } = {}) => {
     const {exact = true, sensitive = false, strict = false} = options;
     return MatchRoute(this.pathname, {
@@ -99,6 +133,7 @@ export class RoutingService {
       path: pattern,
     })
   };
+
   private act(method: 'PUSH' | 'REPLACE', data: any, params?: { [key: string]: any }) {
     let a = null;
     if (typeof data === 'string') {
@@ -121,6 +156,7 @@ export class RoutingService {
       isFirstRendering: false,
     }
   }
+
   private setParams = (search: string, params: { [key: string]: any }) => {
     const oldParams = DeserializeQuery(search);
     return SerializeQuery({

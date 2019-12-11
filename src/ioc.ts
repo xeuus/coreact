@@ -6,9 +6,17 @@ import debounce from "lodash/debounce";
 
 export interface ServiceEvents {
   serviceWillLoad?(context: RequestContext): Promise<any>;
+
   serviceDidLoad?(context: RequestContext): Promise<any>;
+
   serviceWillUnload?(context: RequestContext): Promise<any>;
+
   migrate?(data: any, fromVersion: number): Promise<any>;
+}
+
+export function Consumer(target: any) {
+  return Observer([])(target)
+
 }
 
 export function Observer(types?: { new(): any }[], ...keys: string[]) {
@@ -74,18 +82,21 @@ export function Observer(types?: { new(): any }[], ...keys: string[]) {
     return func as any;
   }
 }
+
 export function Order(order: number) {
   return function (target: any) {
     metadata(target.prototype, {order});
     return target;
   }
 }
+
 export function Service(target: any) {
   const id = config.counter++;
   config.services[id] = target;
   metadata(target.prototype, {id, observer: new EventBus()});
   return target;
 }
+
 export function Piped(target: any, key: string) {
   const {save = []} = metadataOf(target);
   metadata(target, {
@@ -94,6 +105,7 @@ export function Piped(target: any, key: string) {
     }]
   });
 }
+
 export function Persisted(target: any, key: string) {
   const {persist = []} = metadataOf(target);
   metadata(target, {
@@ -102,10 +114,12 @@ export function Persisted(target: any, key: string) {
     }]
   });
 }
+
 export function Autowired<T>(type: { new(context: RequestContext): T }, base: any): T {
   const meta = metadataOf(type.prototype);
   return base.context ? base.context.services[meta.id] : null;
 }
+
 export function Observable(target: any, key: string) {
   const {observables = []} = metadataOf(target);
   metadata(target, {
@@ -114,7 +128,8 @@ export function Observable(target: any, key: string) {
     }]
   });
 }
-export function Route(pattern?: string, options: { exact?: boolean, sensitive?: boolean, strict?: boolean, environment?: 'client' | 'server' } = {}) {
+
+export function Route(pattern?: string, options: { exact?: boolean, sensitive?: boolean, strict?: boolean, environment?: 'client' | 'server', sync?: boolean } = {}) {
   return (target: any, key: string) => {
     const {fetch = []} = metadataOf(target);
     metadata(target, {
@@ -124,6 +139,8 @@ export function Route(pattern?: string, options: { exact?: boolean, sensitive?: 
     });
   };
 }
+
+
 export function FromQuery(target: any, key: string) {
   const {observables = [], query = []} = metadataOf(target);
   metadata(target, {
@@ -135,6 +152,7 @@ export function FromQuery(target: any, key: string) {
     }]
   });
 }
+
 export function BindQuery(name: string, role?: 'replace' | 'goto') {
   return function (target: any, key: string) {
     const {observables = [], query = []} = metadataOf(target);
@@ -150,6 +168,48 @@ export function BindQuery(name: string, role?: 'replace' | 'goto') {
     });
   }
 }
+
+export function Debounced(delay: number) {
+  return function (target: any, key: string) {
+    const {actions = []} = metadataOf(target);
+    metadata(target, {
+      actions: [...actions, {
+        type: 'debounce',
+        key,
+        delay,
+      }],
+    });
+  }
+}
+
+export function Throttle(delay: number) {
+  return function (target: any, key: string) {
+    const {actions = []} = metadataOf(target);
+    metadata(target, {
+      actions: [...actions, {
+        type: 'throttle',
+        key,
+        delay,
+      }],
+    });
+  }
+}
+
+
+export function Timer(delay: number, disabled?: boolean) {
+  return function (target: any, key: string) {
+    const {timers = []} = metadataOf(target);
+    metadata(target, {
+      timers: [...timers, {
+        key,
+        delay,
+        disabled,
+      }],
+    });
+  }
+}
+
+
 export function FromUrl(pattern: string) {
   return function (target: any, key: string) {
     const {observables = [], url = []} = metadataOf(target);
@@ -164,6 +224,7 @@ export function FromUrl(pattern: string) {
     });
   }
 }
+
 export function BindUrl(pattern: string, name: string, role?: 'replace' | 'goto') {
   return function (target: any, key: string) {
     const {observables = [], url = []} = metadataOf(target);
@@ -180,6 +241,7 @@ export function BindUrl(pattern: string, name: string, role?: 'replace' | 'goto'
     });
   }
 }
+
 export function Observe(type: { new(): any }, ...keys: string[]) {
   const {observer} = metadataOf(type.prototype);
   return (target: any, key: string) => {

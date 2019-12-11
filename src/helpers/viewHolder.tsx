@@ -18,11 +18,14 @@ export class ViewHolder extends Component<ViewHolderProps, ViewHolderState> {
         await process();
         this.setState({success: true});
       } catch (e) {
+        console.error(e);
         this.setState({failure: e})
       }
     })();
   }
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    console.error(error);
+    console.error(errorInfo);
     this.setState({failure: {error, errorInfo}, success: false})
   }
   render() {
