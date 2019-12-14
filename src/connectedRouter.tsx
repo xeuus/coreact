@@ -17,11 +17,12 @@ export class ConnectedRouter extends PureComponent<ConnectedRouterProps> {
     this.routing.history = history;
     const handleLocationChange = (location: Location, action: Action, isFirstRendering = false) => {
       if (!this.routing.inTimeTravelling) {
-        this.routing.dummy = {
+        this.routing.state = {
           action,
           location,
           isFirstRendering,
         };
+        this.routing.proceed();
       } else {
         this.routing.inTimeTravelling = false;
       }
@@ -36,7 +37,7 @@ export class ConnectedRouter extends PureComponent<ConnectedRouterProps> {
       pathname: pathnameInStore,
       search: searchInStore,
       hash: hashInStore,
-    } = this.routing.dummy.location;
+    } = this.routing.state.location;
     const {
       pathname: pathnameInHistory,
       search: searchInHistory,
@@ -44,7 +45,7 @@ export class ConnectedRouter extends PureComponent<ConnectedRouterProps> {
     } = history.location;
     if (pathnameInHistory !== pathnameInStore || searchInHistory !== searchInStore || hashInHistory !== hashInStore) {
       this.routing.inTimeTravelling = true;
-      history[this.routing.dummy.action == 'PUSH' ? 'push' : 'replace']({
+      history[this.routing.state.action == 'PUSH' ? 'push' : 'replace']({
         pathname: pathnameInStore,
         search: searchInStore,
         hash: hashInStore,

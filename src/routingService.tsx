@@ -55,7 +55,7 @@ async function runAsync(pathname: string, search: string, context: RequestContex
 export class RoutingService {
   history: History;
   inTimeTravelling: boolean = false;
-  @Observable private state: RoutingState = {
+  @Observable state: RoutingState = {
     location: {
       pathname: '',
       state: undefined,
@@ -67,46 +67,16 @@ export class RoutingService {
     isFirstRendering: true,
   };
 
-  get dummy() {
-    return this.state;
-  }
-
-  set dummy(value: RoutingState) {
-    const {context} = this as any;
-    fillQueries(value.location.pathname, value.location.search, context);
-    if (!value.isFirstRendering) {
-      runAsync(value.location.pathname, value.location.search, context).then(() => {
-        this.state = {
-          ...value,
-          location: {
-            ...value.location,
-            state: null,
-          }
-        };
-      }).catch((error) => {
-        this.state = {
-          ...value,
-          location: {
-            ...value.location,
-            state: error,
-          }
-        };
-      });
-    } else {
-      this.state = value;
-    }
-  }
-
   get url() {
-    return this.dummy.location.pathname + this.dummy.location.search;
+    return this.state.location.pathname + this.state.location.search;
   }
 
   get pathname() {
-    return this.dummy.location.pathname;
+    return this.state.location.pathname;
   }
 
   get search() {
-    return this.dummy.location.search;
+    return this.state.location.search;
   }
 
   goto(data: any, params?: { [key: string]: any }) {
@@ -134,6 +104,15 @@ export class RoutingService {
     })
   };
 
+  proceed = () => {
+    const value = this.state;
+    const {context} = this as any;
+    fillQueries(value.location.pathname, value.location.search, context);
+    if (!value.isFirstRendering) {
+      runAsync(value.location.pathname, value.location.search, context)
+    }
+  };
+
   private act(method: 'PUSH' | 'REPLACE', data: any, params?: { [key: string]: any }) {
     let a = null;
     if (typeof data === 'string') {
@@ -142,19 +121,20 @@ export class RoutingService {
         a.search = this.setParams(a.search, params);
     } else {
       a = {
-        pathname: this.dummy.location.pathname,
-        search: this.setParams(this.dummy.location.search, data),
+        pathname: this.state.location.pathname,
+        search: this.setParams(this.state.location.search, data),
       };
     }
-    this.dummy = {
+    this.state = {
       action: method,
       location: {
-        ...this.dummy.location,
+        ...this.state.location,
         pathname: a.pathname,
         search: a.search,
       },
       isFirstRendering: false,
-    }
+    };
+    this.proceed();
   }
 
   private setParams = (search: string, params: { [key: string]: any }) => {
