@@ -11,6 +11,11 @@ const instance = new Webpack({
   enableGzip: true,
   path: path.resolve(__dirname, './bundle'),
   publicPath: '/dist/',
+  cssPlugins: [
+    require('postcss-rtl')({
+      useCalc: true
+    }),
+  ],
 });
 instance.isolate('*');
 module.exports = instance.config();

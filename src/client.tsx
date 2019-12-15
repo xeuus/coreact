@@ -12,6 +12,7 @@ import {RequestContext} from "./requestContext";
 import {ContextProvider} from "./context";
 import {clientRead} from "./helpers/clientRead";
 import {fillQueries} from "./shared";
+import {checkRtl} from "./helpers/checkRtl";
 
 export class Client {
   constructor(provider: typeof AppProvider) {
@@ -39,6 +40,7 @@ export class Client {
       baseUrl,
       proxies: system.proxies,
       version: system.version,
+      locale: system.locale,
       storagePrefix: system.storagePrefix,
       env: system.env,
       dateTime: new Date(dateTime),
@@ -66,6 +68,8 @@ export class Client {
         }
         await p.providerDidLoad(context);
         await gatherMethods(context, 'serviceDidLoad');
+        document.documentElement.setAttribute('lang', context.locale);
+        document.documentElement.setAttribute('dir', checkRtl(context.locale) ? 'rtl' : 'ltr');
       }}>{
       () => <ContextProvider context={context}>
         <ConnectedRouter>{p.application}</ConnectedRouter>

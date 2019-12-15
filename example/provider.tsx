@@ -11,6 +11,7 @@ module.exports = class Provider extends AppProvider {
     </Fragment>;
     this.failure = err => <div>somthing went wrong</div>;
     this.splash = <div>loading</div>;
+    this.context.locale = 'fa';
   }
 };
 

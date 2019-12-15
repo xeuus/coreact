@@ -6,6 +6,7 @@ export type RequestContext = {
   encrypt: boolean;
   version: number;
   method: string;
+  locale: string;
   params: any;
   autoPersist: boolean;
   body: { [key: string]: any };

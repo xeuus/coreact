@@ -198,6 +198,7 @@ export class Server {
         storagePrefix: storagePrefix,
         version: version,
         encrypt: encrypt,
+        locale: 'en',
         env: envKeys.reduce((acc, key) => {
           acc[key] = process.env[key];
           return acc;
@@ -248,6 +249,7 @@ export class Server {
             <StaticRouter basename={baseUrl} location={req.url} context={routerContext}>
               <Html
                 id={p.name}
+                locale={context.locale}
                 beginHead={<>
                   {p.beginOfHead}
                   <meta id="app-view-state" name="view-state" content={saltKey}/>
@@ -275,6 +277,7 @@ export class Server {
                     data={JSON.stringify({
                       delayedPersist: delayedPersist,
                       version: version,
+                      locale: context.locale,
                       encrypt: encrypt,
                       storagePrefix: storagePrefix,
                       mode: mode,
