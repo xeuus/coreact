@@ -57,7 +57,7 @@ export const restorePersistedDataOnClientSide = (context: RequestContext) => {
             if (data) {
               const content = clientDecrypt(data, key, context.encrypt);
               const json = JSON.parse(content);
-              service.migrate.apply(service, json, version)
+              service.migrate.apply(service, json, version, context.version)
             }
           }
           localStorage.removeItem(key)

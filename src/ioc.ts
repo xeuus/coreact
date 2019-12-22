@@ -11,7 +11,7 @@ export interface ServiceEvents {
 
   serviceWillUnload?(context: RequestContext): Promise<any>;
 
-  migrate?(data: any, fromVersion: number): Promise<any>;
+  migrate?(data: any, fromVersion: number, toVersion: number): Promise<any>;
 }
 
 export function Consumer(target: any) {
