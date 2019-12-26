@@ -3,6 +3,7 @@ import React, { PureComponent } from 'react';
 import { Todo, TodoService } from './TodoService';
 import {Autowired, Observer, RoutingService} from "../../src";
 import {routes} from "../routes";
+import {LocaleService} from "./LocaleService";
 
 interface StateType {
   message: string,
@@ -13,6 +14,7 @@ export class TodoView extends PureComponent<{}, StateType> {
 
   todo = Autowired(TodoService, this);
   router = Autowired(RoutingService, this);
+  locale = Autowired(LocaleService, this);
 
   state: StateType = {
     message: '',
@@ -52,6 +54,11 @@ export class TodoView extends PureComponent<{}, StateType> {
           })}
         </div>
       </div>
+
+
+      <button className="change-locale-button" onClick={()=>{
+        this.locale.locale = this.locale.locale == 'en' ? 'fa' : 'en';
+      }}>Switch Locale</button>
     </div>;
   }
 }

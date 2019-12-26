@@ -313,6 +313,14 @@ export class Server {
             </StaticRouter>
           </ContextProvider>
         );
+        Object.keys(context.cookies).map(key => {
+          const cookie = context.cookies[key];
+          if(typeof cookie === 'undefined' || cookie === null) {
+            res.cookie(key, '', {expires: new Date(0)});
+          }else {
+            res.cookie(key, cookie);
+          }
+        });
         res.setHeader('Content-Type', 'text/html;charset=utf-8');
         if (routerContext.url && allowRedirect) {
           res.redirect(301, routerContext.url);
