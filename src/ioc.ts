@@ -3,7 +3,6 @@ import {EventBus} from "./eventBus";
 import {CoreContext} from "./context";
 import {config, metadata, metadataOf} from "./shared";
 import debounce from "lodash/debounce";
-
 export interface ServiceEvents {
   serviceWillLoad?(context: RequestContext): Promise<any>;
 

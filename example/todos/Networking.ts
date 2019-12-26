@@ -1,8 +1,9 @@
 import axios from "axios";
 import {HttpRequest, HttpResponse, NetLayer} from 'netlayer';
-import {optional, RequestContext, Service} from "../../src";
+import {optional, Order, RequestContext, Service} from "../../src";
 
 @Service
+@Order(Number.NEGATIVE_INFINITY)
 export class Networking extends NetLayer {
 
   constructor(context: RequestContext) {

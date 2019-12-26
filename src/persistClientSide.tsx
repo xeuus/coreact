@@ -26,6 +26,11 @@ export const registerPersistClient = (context: RequestContext) => {
       localStorage.removeItem(key)
     });
   };
+  Client.drainService = (service) => {
+    const {id} = metadataOf(service);
+    const key = `${context.storagePrefix}_bridge${id}`;
+    localStorage.removeItem(key)
+  };
   let lock = false;
   function lockedSave() {
     if (!lock) {
@@ -33,7 +38,7 @@ export const registerPersistClient = (context: RequestContext) => {
       gatherMethods(context, 'serviceWillUnload').then(()=>{
         Client.persist();
       }).catch((e)=>{
-        console.error(e)
+        console.error(e);
         Client.persist();
       });
     }

@@ -1,6 +1,6 @@
 {
   "name": "coreact",
-  "version": "3.2.9",
+  "version": "3.3.0",
   "description": "React server-side/service oriented programming with IOC.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -31,6 +31,7 @@
     "@types/express-useragent": "^1.0.0",
     "@types/history": "^4.7.3",
     "@types/http-proxy": "^1.17.0",
+    "@types/js-cookie": "^2.2.4",
     "@types/lodash": "^4.14.138",
     "@types/node": "^11.13.18",
     "@types/react": "^16.9.2",
@@ -44,6 +45,7 @@
     "css-loader": "^3.2.0",
     "express": "^4.17.1",
     "file-loader": "^4.2.0",
+    "js-cookie": "^2.2.1",
     "mini-css-extract-plugin": "^0.8.0",
     "netlayer": "^1.1.1",
     "node-sass": "^4.12.0",
