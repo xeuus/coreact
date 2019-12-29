@@ -14,6 +14,7 @@ import {randomString} from "./helpers/functions";
 import {ContextProvider} from "./context";
 import {fillQueries} from "./shared";
 import {RequireMiddleware} from "./require";
+
 const cookieParser = require('cookie-parser');
 const useragent = require('express-useragent');
 export type Proxy = {
@@ -28,6 +29,7 @@ export type ServerOptions = {
   webpackOptions: any;
   rootPath: string;
   srcPath: string;
+  distPath: string;
   storagePrefix: string;
   mode?: string,
   envKeys?: string[];
@@ -40,6 +42,7 @@ export type ServerOptions = {
   allowRedirect?: boolean;
   apiPrefix?: string;
 }
+
 export class Server {
   options: ServerOptions = {
     mode: 'production',
@@ -59,14 +62,17 @@ export class Server {
     bundleDir: ['/dist', '.'],
     rootPath: '.',
     srcPath: '.',
+    distPath: '.',
     storagePrefix: 'app',
   };
+
   constructor(options: ServerOptions) {
     this.options = {
       ...this.options,
       ...options,
     }
   }
+
   isolate = (name: string) => {
     if (name) {
       if (name == '*') {
@@ -78,6 +84,7 @@ export class Server {
       this.options.match = path + '*';
     }
   };
+
   start(app: Express) {
     const {match, storagePrefix, encrypt, version, envKeys, mode, delayedPersist, apiPrefix, proxies, assets, enableGzip, webpackOptions, publicDir, bundleDir, allowRedirect} = this.options;
     const proxyServer = httpProxy.createProxyServer() as any;
@@ -89,8 +96,7 @@ export class Server {
     }
     const bundleUri = baseUrl + bundleDir[0];
     const publicUri = baseUrl + publicDir[0];
-    const pth = this.options.rootPath.substr(this.options.srcPath.length);
-    RequireMiddleware(this.options.rootPath, baseUrl + bundleUri + pth);
+    RequireMiddleware(baseUrl, bundleUri, this.options.rootPath, this.options.srcPath, this.options.distPath);
     const provider = this.options.provider();
     app.get(baseUrl + '/favicon.ico', (req: Request, res: Response) => {
       res.statusCode = 404;
@@ -147,10 +153,12 @@ export class Server {
         heartbeat: 1000,
       }));
     }
+
     function notFound(req: Request, res: Response) {
       res.statusCode = 404;
       res.end();
     }
+
     if (enableGzip) {
       app.get(new RegExp(`^.+(.js.gz\?|.js.gz$)`), (req, res, next) => {
         res.set('Content-Encoding', 'gzip');
@@ -230,9 +238,9 @@ export class Server {
       try {
         await gatherMethods(context, 'serviceWillLoad');
         await p.providerWillLoad(context);
-        try{
+        try {
           await gatherAsyncProperties(context);
-        }catch (e) {
+        } catch (e) {
           console.error(e);
         }
         await p.providerDidLoad(context);
@@ -315,9 +323,9 @@ export class Server {
         );
         Object.keys(context.cookies).map(key => {
           const cookie = context.cookies[key];
-          if(typeof cookie === 'undefined' || cookie === null) {
+          if (typeof cookie === 'undefined' || cookie === null) {
             res.cookie(key, '', {expires: new Date(0)});
-          }else {
+          } else {
             res.cookie(key, cookie);
           }
         });
@@ -355,6 +363,7 @@ export class Server {
       }
     });
   }
+
   private isDev() {
     return this.options.mode != 'production';
   }

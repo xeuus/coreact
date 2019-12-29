@@ -1,4 +1,4 @@
-export function RequireMiddleware(root: string, baseUrl: string) {
+export function RequireMiddleware(baseUrl: string, bundleUri: string, rootPath: string, srcPath: string, distPath: string) {
   const path = require('path');
   const Module = require('module');
   const originalRequire = Module.prototype.require;
@@ -12,7 +12,9 @@ export function RequireMiddleware(root: string, baseUrl: string) {
     } else if (['jpg', 'gif', 'bmp', 'png', 'svg'].indexOf(p.substr(-3)) > -1) {
       const pth = this.filename.toString().split('/');
       pth.pop();
-      return baseUrl + path.resolve(pth.join('/'), p).substr(root.length);
+
+      const base = baseUrl + bundleUri + srcPath.substr(rootPath.length);
+      return base + path.resolve(pth.join('/'), p).substr(distPath.length);
     }
     return originalRequire.call(this, p);
   };

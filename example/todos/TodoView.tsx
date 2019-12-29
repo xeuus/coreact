@@ -4,6 +4,7 @@ import { Todo, TodoService } from './TodoService';
 import {Autowired, Observer, RoutingService} from "../../src";
 import {routes} from "../routes";
 import {LocaleService} from "./LocaleService";
+import {Logo} from "../assets";
 
 interface StateType {
   message: string,
@@ -25,6 +26,7 @@ export class TodoView extends PureComponent<{}, StateType> {
   render() {
     const { message } = this.state;
     return <div className="todo-page-container">
+      <img src={Logo} alt="instagram logo"/>
       <div className="todo-wrapper">
         <div className="todo-input-container">
           <input type="text" placeholder="Write something..." value={message} onChange={e => this.changeText(e.target.value)}/>

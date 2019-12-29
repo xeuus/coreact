@@ -23,7 +23,8 @@ const server = new Server({
   bundleDir: ['/dist', path.resolve(__dirname, '../../bundle')],
   webpackOptions: require('../../webpack.config.js'),
   rootPath: path.resolve(__dirname, '..'),
-  srcPath: path.resolve(__dirname, '.'),
+  srcPath: path.resolve(__dirname, '../..'),
+  distPath: path.resolve(__dirname, '../../dist'),
   storagePrefix: 'app',
 });
 server.isolate('*');
