@@ -16,6 +16,7 @@ import {checkRtl} from "./helpers/checkRtl";
 import jsCookie from 'js-cookie';
 
 export class Client {
+  hydrate: any = null;
   constructor(provider: typeof AppProvider) {
     let proto = window.location.protocol;
     const idx = proto.indexOf(':');
@@ -147,15 +148,14 @@ export class Client {
     }</ViewHolder>;
     if (context.mode != 'development') {
       hydrate(app, element);
-      return () => {
-      };
     } else {
       render(app, element);
-      const update = () => hydrate(app, element);
+      this.hydrate = () => {
+        hydrate(app, element);
+      };
       window.addEventListener('orientationchange', () => {
-        update();
+        this.hydrate();
       });
-      return update;
     }
   }
   static persist = () => {

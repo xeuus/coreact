@@ -19,20 +19,12 @@ export class TodoService {
   @Piped @Observable currentTodo: Todo = null;
 
 
-  @Timer(1000, true)
-  some(context: RequestContext){
-    console.log(context.dateTime.getTime() - new Date().getTime());
-  };
-
   async addTodo(message: string) {
     const response = await this.net.POST<Todo>('/todos', {
       message
     });
     this.todoList = [...this.todoList, response.payload];
-
-    (this.some as any).start();
   };
-
   async deleteTodo(todo: Todo) {
     await this.net.DELETE('/todos', {id: todo.id});
     this.todoList = this.todoList.filter(a => a.id != todo.id);

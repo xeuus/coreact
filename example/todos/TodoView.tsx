@@ -26,8 +26,6 @@ export class TodoView extends PureComponent<{}, StateType> {
   render() {
     const {message} = this.state;
     return <div className="todo-page-container">
-
-
       <div className="header-container">
         <img src={Assets.Logo} className="logo"/>
         <div className="locale" onClick={() => this.locale.locale = this.locale.locale == 'en' ? 'fa' : 'en'}>

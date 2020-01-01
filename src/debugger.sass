@@ -1,26 +1,20 @@
 $primary: #046FD1
-.debugger-container
+[dir] .debugger-container
   display: flex
   flex-direction: column
   position: fixed
-  top: 0
-  left: 0
-  width: 16px
-  height: 16px
+  top: 8px
+  left: 8px
+  width: 32px
+  height: 32px
   overflow: hidden
   z-index: 9999
   font-family: monospace
-  border-bottom-right-radius: 32px
-  font-size: 16px
+  font-size: 12px
 
   .tab-item.reverse-icon
     transform: scaleY(-1)
 
-  &.reverse
-    top: auto
-    bottom: 0
-    .tab-item.reverse-icon
-      transform: scaleY(1)
 
   .debugger-utils
     display: none
@@ -102,9 +96,7 @@ $primary: #046FD1
     user-select: none
     background: $primary
     box-shadow: inset 0 -1px 0 0 rgba(#000, 0.2)
-    padding:  8px
-    position: sticky
-    top: 0
+    padding:  4px 0
     z-index: 10
 
 
@@ -112,10 +104,13 @@ $primary: #046FD1
       display: flex
       justify-content: center
       align-items: center
-      padding: 0 8px
+      padding: 0 12px
       height: 24px
       border-radius: 40px
       cursor: pointer
+      margin: 4px
+      & > svg
+        transform: scale(1.2)
 
       &.active
         box-shadow: inset 2px 2px 3px 0 rgba(#000, 0.2)
@@ -125,12 +120,10 @@ $primary: #046FD1
         opacity: 0.8
 
   .debugger-trigger-button
-    position: fixed
+    position: relative
     display: flex
     justify-content: center
     align-items: center
-    top: 8px
-    left: 8px
     width: 32px
     height: 32px
     background: $primary
@@ -173,26 +166,43 @@ $primary: #046FD1
           box-shadow: inset 2px 2px 3px 0 rgba(#000, 0.2)
           background: darken($primary, 10)
 
-  &.active:not(.selected) .debugger-trigger-button
+  &.active:not(.selected)
     top: -90px
     left: -90px
     width: 180px
     height: 180px
-    border-radius: 128px
-    cursor: default
+    background: $primary
+    border-bottom-right-radius: 90px
 
-    & > svg
-      display: none
+    .debugger-trigger-button
+      width: 180px
+      height: 180px
+      border-radius: 128px
+      cursor: default
+
+      & > svg
+        display: none
 
     .button-item
       display: flex
 
+
+
   &.selected
+    top: 0
+    left: 0
     width: 100vw
-    height: 60vh
+    height: 70vh
     background: $primary
     overflow-x: hidden
     overflow-y: auto
     border-bottom-right-radius: 0
     .debugger-trigger-button
       display: none
+
+
+    &.reverse
+      top: auto
+      bottom: 0
+      .tab-item.reverse-icon
+        transform: scaleY(1)
