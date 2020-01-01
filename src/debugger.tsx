@@ -1,7 +1,7 @@
 import './debugger.sass';
-import {RequestContext} from "../requestContext";
-import {optional} from "..";
-import {metadataOf} from "../shared";
+import {RequestContext} from "./requestContext";
+import {optional} from "./helpers/functions";
+import {metadataOf} from "./shared";
 import debounce from 'lodash/debounce';
 
 function createElement(className: string, other?: HTMLElement) {
@@ -213,7 +213,7 @@ export function RegisterDebugger(context: RequestContext) {
       changeProperty(currentProperty, currentService);
     }, 500);
 
-    const services = context.services.map(service => {
+    const services = context.services.map((service: any) => {
       const {id, order = 0, observer} = metadataOf(service);
 
       observer.listen(() => {
