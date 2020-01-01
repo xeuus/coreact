@@ -13,14 +13,85 @@ $primary: #046FD1
   border-bottom-right-radius: 32px
   font-size: 16px
 
-  .debugger-data
+  .tab-item.reverse-icon
+    transform: scaleY(-1)
+
+  &.reverse
+    top: auto
+    bottom: 0
+    .tab-item.reverse-icon
+      transform: scaleY(1)
+
+  .debugger-utils
+    display: none
+    flex-direction: column
+    width: 100%
+    height: 100%
+    background: #2b303b
+
+  .console-utils
+    display: none
+    flex-direction: column
+    width: 100%
+    height: 100%
+    background: #2b303b
+
+
+  &.debugger-utils-selector
+    .debugger-utils
+      display: flex
+
+  &.console-utils-selector
+    .console-utils
+      display: flex
+
+
+  .debugger-data.service
     margin: 0 0
     padding: 16px
-    background: #000
     height: 100%
-    color: #fff
     word-break: break-all
     white-space: pre-wrap
+
+
+  .debugger-data.console
+    position: relative
+    background: #2b303b
+    display: flex
+    flex-direction: column
+    padding: 0
+    height: 100%
+    width: 100%
+    font-family: monospace
+    user-select: text!important
+    overflow-y: auto
+    overflow-x: hidden
+    .trace
+      background: #2b303b
+      display: flex
+      flex-direction: column
+      flex: 0 0 auto
+      padding: 0
+      &:not(:last-of-type)
+
+        box-shadow: 0 1px 0 0 rgba(#000, 0.2)
+      &.log
+        background: transparent
+      &.error
+        background: rgba(#000, 0.2)
+      div
+        display: flex
+        justify-content: flex-end
+        color: #32a25d
+        font-size: 12px
+        opacity: 0.5
+        padding: 4px 8px
+      pre
+        padding: 8px
+        margin: 0
+        background: transparent
+        word-break: break-all
+        white-space: pre-wrap
 
   .debugger-tabs
     display: flex
@@ -41,8 +112,8 @@ $primary: #046FD1
       display: flex
       justify-content: center
       align-items: center
-      padding: 0 16px
-      height: 30px
+      padding: 0 8px
+      height: 24px
       border-radius: 40px
       cursor: pointer
 
@@ -58,22 +129,70 @@ $primary: #046FD1
     display: flex
     justify-content: center
     align-items: center
-    top: -16px
-    left: -16px
+    top: 8px
+    left: 8px
     width: 32px
     height: 32px
-    background: darken($primary, 10)
+    background: $primary
     cursor: pointer
     border-radius: 32px
-    z-index: 999
+    z-index: 9999
+    box-shadow: 10px 12px 40px -10px rgba(#000, 0.1)
+    & > svg
+      position: absolute
 
-  &.active
+    .button-item
+      display: none
+      position: absolute
+      justify-content: flex-end
+      height: 32px
+      width: 90%
+      &:nth-child(2)
+        transform: rotate(30deg)
+        .item
+          transform: rotate(-30deg)
+
+
+      &:nth-child(3)
+        transform: rotate(60deg)
+        .item
+          transform: rotate(-60deg)
+
+      .item
+        display: flex
+        justify-content: center
+        align-items: center
+        width: 32px
+        height: 32px
+        border-radius: 32px
+        color: #fff
+        cursor: pointer
+        svg
+          transform: scale(1.3)
+        &:hover
+          box-shadow: inset 2px 2px 3px 0 rgba(#000, 0.2)
+          background: darken($primary, 10)
+
+  &.active:not(.selected) .debugger-trigger-button
+    top: -90px
+    left: -90px
+    width: 180px
+    height: 180px
+    border-radius: 128px
+    cursor: default
+
+    & > svg
+      display: none
+
+    .button-item
+      display: flex
+
+  &.selected
     width: 100vw
-    max-height: 100vh
-    height: auto
+    height: 60vh
     background: $primary
-
     overflow-x: hidden
     overflow-y: auto
     border-bottom-right-radius: 0
-    box-shadow: 0 8px 12px -6px rgba(#000, 0.5)
+    .debugger-trigger-button
+      display: none
