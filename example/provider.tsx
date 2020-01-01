@@ -1,7 +1,7 @@
 import React, {Fragment} from 'react';
 import {AppProvider, RequestContext} from "../src";
 import {App} from "./app";
-import {RegisterDebugger} from "../src/debugger/debugger";
+import {RegisterDebugger} from "../src/debugger";
 
 module.exports = class Provider extends AppProvider {
   constructor(context: RequestContext) {
