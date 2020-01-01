@@ -23,7 +23,6 @@ export class Client {
     const rawUrl = (window.location.pathname + window.location.search).substr(baseUrl.length);
     const url = decomposeUrl(rawUrl);
     const system = JSON.parse(clientRead('system', true));
-    let cookies = ParseCookies(window.document.cookie);
     let locale = system.locale;
     const context: RequestContext = {
       autoPersist: system.delayedPersist,
@@ -36,7 +35,7 @@ export class Client {
       query: DeserializeQuery(url.search),
       method: 'GET',
       hostname: window.location.hostname,
-      cookies: cookies,
+      cookies: {},
       protocol: proto,
       headers: {},
       useragent: new UserAgent().parse(window.navigator.userAgent),
@@ -51,14 +50,52 @@ export class Client {
       environment: 'client',
       encrypt: system.encrypt,
     };
+
+    Object.defineProperty(context, 'query', {
+      configurable: false,
+      enumerable: true,
+      get(): any {
+        const rawUrl = (window.location.pathname + window.location.search).substr(baseUrl.length);
+        const url = decomposeUrl(rawUrl);
+        return DeserializeQuery(url.search);
+      }
+    });
+
+    Object.defineProperty(context, 'pathname', {
+      configurable: false,
+      enumerable: true,
+      get(): any {
+        const rawUrl = (window.location.pathname + window.location.search).substr(baseUrl.length);
+        const url = decomposeUrl(rawUrl);
+        return url.pathname;
+      }
+    });
+
+    Object.defineProperty(context, 'search', {
+      configurable: false,
+      enumerable: true,
+      get(): any {
+        const rawUrl = (window.location.pathname + window.location.search).substr(baseUrl.length);
+        const url = decomposeUrl(rawUrl);
+        return url.search;
+      }
+    });
+
+    Object.defineProperty(context, 'url', {
+      configurable: false,
+      enumerable: true,
+      get(): any {
+        const rawUrl = (window.location.pathname + window.location.search).substr(baseUrl.length);
+        return rawUrl;
+      }
+    });
     Object.defineProperty(context, 'cookies', {
       configurable: false,
       enumerable: true,
       get(): any {
-        return cookies;
+        return ParseCookies(window.document.cookie);
       },
       set(v: any): void {
-        cookies = v;
         Object.keys(v).map(key => {
           const cookie = v[key];
           if (typeof cookie === 'undefined' || cookie === null) {
@@ -125,6 +162,6 @@ export class Client {
   };
   static clearStorage = () => {
   };
-  static drainService = (service: { new(context: RequestContext): any }) => {
+  static drainService = (service: { new(context?: RequestContext): any }) => {
   };
 }

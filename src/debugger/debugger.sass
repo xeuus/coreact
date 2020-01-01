@@ -1,0 +1,79 @@
+$primary: #046FD1
+.debugger-container
+  display: flex
+  flex-direction: column
+  position: fixed
+  top: 0
+  left: 0
+  width: 16px
+  height: 16px
+  overflow: hidden
+  z-index: 9999
+  font-family: monospace
+  border-bottom-right-radius: 32px
+  font-size: 16px
+
+  .debugger-data
+    margin: 0 0
+    padding: 16px
+    background: #000
+    height: 100%
+    color: #fff
+    word-break: break-all
+    white-space: pre-wrap
+
+  .debugger-tabs
+    display: flex
+    flex-wrap: wrap
+    width: 100%
+    color: #fff
+    flex: 0 0 auto
+    user-select: none
+    background: $primary
+    box-shadow: inset 0 -1px 0 0 rgba(#000, 0.2)
+    padding:  8px
+    position: sticky
+    top: 0
+    z-index: 10
+
+
+    .tab-item
+      display: flex
+      justify-content: center
+      align-items: center
+      padding: 0 16px
+      height: 30px
+      border-radius: 40px
+      cursor: pointer
+
+      &.active
+        box-shadow: inset 2px 2px 3px 0 rgba(#000, 0.2)
+        background: darken($primary, 10)
+
+      &:hover
+        opacity: 0.8
+
+  .debugger-trigger-button
+    position: fixed
+    display: flex
+    justify-content: center
+    align-items: center
+    top: -16px
+    left: -16px
+    width: 32px
+    height: 32px
+    background: darken($primary, 10)
+    cursor: pointer
+    border-radius: 32px
+    z-index: 999
+
+  &.active
+    width: 100vw
+    max-height: 100vh
+    height: auto
+    background: $primary
+
+    overflow-x: hidden
+    overflow-y: auto
+    border-bottom-right-radius: 0
+    box-shadow: 0 8px 12px -6px rgba(#000, 0.5)

@@ -1,7 +1,7 @@
 {
   "name": "coreact",
-  "version": "3.3.1",
-  "description": "React server-side/service oriented programming with IOC.",
+  "version": "3.3.2",
+  "description": "React server-side, service oriented programming.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -74,6 +74,7 @@
     "history": "^4.9.0",
     "http-proxy": "^1.17.0",
     "lodash": "^4.17.15",
+    "module-alias": "^2.2.2",
     "react-router": "^5.0.1",
     "react-router-dom": "^5.0.1"
   }

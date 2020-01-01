@@ -1,9 +1,10 @@
-import {Client, Order, RequestContext, Service, ServiceEvents} from "../../src";
+import {Client, Observable, Order, Ordered, RequestContext, Service, ServiceEvents} from "../../src";
 
 @Service
-@Order(Number.NEGATIVE_INFINITY)
+@Order(Ordered.HIGHEST_PRECEDENCE)
 export class LocaleService implements ServiceEvents {
-  context: RequestContext;
+  @Observable private _idx = false;
+  private context: RequestContext;
   async serviceWillLoad(context: RequestContext) {
     context.locale = context.cookies.locale || 'en';
   }
@@ -15,6 +16,7 @@ export class LocaleService implements ServiceEvents {
     this.context.cookies = {
       ...this.context.cookies,
       locale: value,
-    }
+    };
+    this._idx = !this._idx;
   }
 }

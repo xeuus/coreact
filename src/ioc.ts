@@ -18,7 +18,7 @@ export function Consumer(target: any) {
 
 }
 
-export function Observer(types?: { new(): any }[], ...keys: string[]) {
+export function Observer(types?: { new(context?: RequestContext): any }[], ...keys: string[]) {
   return function (target: any) {
     const original = target;
     const func = function (props: any, context: RequestContext) {
@@ -35,7 +35,7 @@ export function Observer(types?: { new(): any }[], ...keys: string[]) {
             this.serviceDidUpdate.apply(this)
           }
         });
-      }, 50);
+      }, 25);
       this.componentDidMount = function (...args: any[]) {
         if (types && types.length > 0) {
           types.forEach(typ => {
@@ -82,6 +82,12 @@ export function Observer(types?: { new(): any }[], ...keys: string[]) {
   }
 }
 
+export const Ordered = {
+  HIGHEST_PRECEDENCE: -999999999,
+  LOWEST_PRECEDENCE: 999999999,
+};
+
+
 export function Order(order: number) {
   return function (target: any) {
     metadata(target.prototype, {order});
@@ -114,7 +120,7 @@ export function Persisted(target: any, key: string) {
   });
 }
 
-export function Autowired<T>(type: { new(context: RequestContext): T }, base: any): T {
+export function Autowired<T>(type: { new(context?: RequestContext): T }, base: any): T {
   const meta = metadataOf(type.prototype);
   return base.context ? base.context.services[meta.id] : null;
 }
@@ -241,14 +247,16 @@ export function BindUrl(pattern: string, name: string, role?: 'replace' | 'goto'
   }
 }
 
-export function Observe(type: { new(): any }, ...keys: string[]) {
-  const {observer} = metadataOf(type.prototype);
+export function Observe(types: { new(context?: RequestContext): any }[], ...keys: string[]) {
   return (target: any, key: string) => {
-    const {observers = []} = metadataOf(target);
-    metadata(target, {
-      observers: [...observers, {
-        key, observer, keys,
-      }]
-    });
+    types.forEach(type => {
+      const {observer} = metadataOf(type.prototype);
+      const {observers = []} = metadataOf(target);
+      metadata(target, {
+        observers: [...observers, {
+          key, observer, keys,
+        }]
+      });
+    })
   };
 }

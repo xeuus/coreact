@@ -1,16 +1,16 @@
 import './styles.sass';
-import React, { PureComponent } from 'react';
-import { Todo, TodoService } from './TodoService';
+import React, {PureComponent} from 'react';
+import {TodoService} from './TodoService';
 import {Autowired, Observer, RoutingService} from "../../src";
 import {routes} from "../routes";
 import {LocaleService} from "./LocaleService";
-import {Logo} from "../assets";
+import {Assets} from "../assets";
 
 interface StateType {
   message: string,
 }
 
-@Observer([TodoService])
+@Observer([TodoService, LocaleService])
 export class TodoView extends PureComponent<{}, StateType> {
 
   todo = Autowired(TodoService, this);
@@ -21,19 +21,28 @@ export class TodoView extends PureComponent<{}, StateType> {
     message: '',
   };
 
-  changeText = (message: string) => this.setState({ message });
+  changeText = (message: string) => this.setState({message});
 
   render() {
-    const { message } = this.state;
+    const {message} = this.state;
     return <div className="todo-page-container">
-      <img src={Logo} alt="instagram logo"/>
+
+
+      <div className="header-container">
+        <img src={Assets.Logo} className="logo"/>
+        <div className="locale" onClick={() => this.locale.locale = this.locale.locale == 'en' ? 'fa' : 'en'}>
+          {this.locale.locale}
+        </div>
+      </div>
+
       <div className="todo-wrapper">
         <div className="todo-input-container">
           <input type="text" placeholder="Write something..." value={message} onChange={e => this.changeText(e.target.value)}/>
-          <button className="add-todo-button" onClick={()=>{
+          <button className="add-todo-button" onClick={() => {
             this.todo.addTodo(message);
-            this.setState({message:''});
-          }}>Add</button>
+            this.setState({message: ''});
+          }}>Add
+          </button>
         </div>
         <div className="todo-list">
           {this.todo.todoList.map(t => {
@@ -57,10 +66,6 @@ export class TodoView extends PureComponent<{}, StateType> {
         </div>
       </div>
 
-
-      <button className="change-locale-button" onClick={()=>{
-        this.locale.locale = this.locale.locale == 'en' ? 'fa' : 'en';
-      }}>Switch Locale</button>
     </div>;
   }
 }

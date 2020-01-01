@@ -141,10 +141,6 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
           const response = service[key].call(service, {
             ...context,
             dateTime: startDate,
-            query: DeserializeQuery(window.location.search),
-            pathname: window.location.pathname,
-            url: window.location.pathname+window.location.search,
-            search:window.location.search,
           } as RequestContext);
           if (response !== false)
             recall();

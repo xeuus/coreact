@@ -2,7 +2,7 @@ import React from 'react';
 import {Action, History, Location} from 'history';
 import {MatchResult, MatchRoute} from './helpers/match';
 import {decomposeUrl, DeserializeQuery, SerializeQuery} from "./param";
-import {Observable, Order, Service} from "./ioc";
+import {Observable, Order, Ordered, Service} from "./ioc";
 import {RequestContext} from "./requestContext";
 import {fillQueries, metadataOf} from "./shared";
 
@@ -51,7 +51,7 @@ async function runAsync(pathname: string, search: string, context: RequestContex
 
 
 @Service
-@Order(Number.NEGATIVE_INFINITY)
+@Order(Ordered.HIGHEST_PRECEDENCE)
 export class RoutingService {
   history: History;
   inTimeTravelling: boolean = false;
