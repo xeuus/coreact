@@ -165,7 +165,7 @@ export function RegisterDebugger(context: RequestContext) {
                 if (arg === null) {
                   text.innerText = 'null';
                 } else {
-                  text.innerText = JSON.stringify(arg, (key, value) => {
+                  text.innerText = JSON.stringify(arg, name === 'error' ? (key, value) => {
                     if (typeof value == 'object' && value != null) {
                       const obj = {};
                       Object.getOwnPropertyNames(value).forEach(name => {
@@ -177,7 +177,7 @@ export function RegisterDebugger(context: RequestContext) {
                       return obj;
                     }
                     return value;
-                  }, '  ');
+                  } : null, '  ');
                 }
               } else if (typeof arg === 'undefined') {
                 text.innerText = 'undefined'
@@ -207,6 +207,7 @@ export function RegisterDebugger(context: RequestContext) {
     }
 
     make('log');
+    make('error');
 
   })();
 

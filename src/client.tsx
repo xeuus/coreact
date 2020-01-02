@@ -122,6 +122,9 @@ export class Client {
       }
     });
     registerServices(context);
+    if(context.mode=='development'){
+      (window as any).context = context;
+    }
     fillQueries(url.pathname, url.search, context);
     const p = new provider(context);
     const element = document.getElementById(p.name);
