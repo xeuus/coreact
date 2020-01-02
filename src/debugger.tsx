@@ -1,4 +1,3 @@
-import './debugger.sass';
 import {RequestContext} from "./requestContext";
 import {optional} from "./helpers/functions";
 import {metadataOf} from "./shared";
