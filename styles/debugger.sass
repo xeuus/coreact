@@ -5,8 +5,8 @@ $primary: #046FD1
   position: fixed
   top: 8px
   left: 8px
-  width: 32px
-  height: 32px
+  width: 24px
+  height: 24px
   overflow: hidden
   z-index: 9999
   font-family: monospace
@@ -20,14 +20,14 @@ $primary: #046FD1
     display: none
     flex-direction: column
     width: 100%
-    height: 100%
+    height: auto
     background: #2b303b
 
   .console-utils
     display: none
     flex-direction: column
     width: 100%
-    height: 100%
+    height: auto
     background: #2b303b
 
 
@@ -43,7 +43,7 @@ $primary: #046FD1
   .debugger-data.service
     margin: 0 0
     padding: 16px
-    height: 100%
+    min-height: 100vh
     word-break: break-all
     white-space: pre-wrap
 
@@ -54,8 +54,7 @@ $primary: #046FD1
     display: flex
     flex-direction: column
     padding: 0
-    height: 100%
-    width: 100%
+    min-height: 100vh
     font-family: monospace
     user-select: text!important
     overflow-y: auto
@@ -99,7 +98,6 @@ $primary: #046FD1
     padding:  4px 0
     z-index: 10
 
-
     .tab-item
       display: flex
       justify-content: center
@@ -124,11 +122,11 @@ $primary: #046FD1
     display: flex
     justify-content: center
     align-items: center
-    width: 32px
-    height: 32px
+    width: 24px
+    height: 24px
     background: $primary
     cursor: pointer
-    border-radius: 32px
+    border-radius: 24px
     z-index: 9999
     box-shadow: 10px 12px 40px -10px rgba(#000, 0.1)
     & > svg
@@ -138,26 +136,24 @@ $primary: #046FD1
       display: none
       position: absolute
       justify-content: flex-end
-      height: 32px
-      width: 90%
+      height: 24px
+      width: 140px
+      pointer-events: none
+      transform: rotate(45deg)
+      .item
+        pointer-events: auto
+        transform: rotate(-45deg)
+
       &:nth-child(2)
-        transform: rotate(30deg)
-        .item
-          transform: rotate(-30deg)
-
-
-      &:nth-child(3)
-        transform: rotate(60deg)
-        .item
-          transform: rotate(-60deg)
+        width: 80px
 
       .item
         display: flex
         justify-content: center
         align-items: center
-        width: 32px
-        height: 32px
-        border-radius: 32px
+        width: 24px
+        height: 24px
+        border-radius: 24px
         color: #fff
         cursor: pointer
         svg
@@ -167,17 +163,18 @@ $primary: #046FD1
           background: darken($primary, 10)
 
   &.active:not(.selected)
-    top: -90px
-    left: -90px
-    width: 180px
-    height: 180px
+    $size: 160px
+    top: $size/-2
+    left: $size/-2
+    width: $size
+    height: $size
     background: $primary
-    border-bottom-right-radius: 90px
+    border-bottom-right-radius: $size/2
 
     .debugger-trigger-button
-      width: 180px
-      height: 180px
-      border-radius: 128px
+      width: $size
+      height: $size
+      border-radius: $size/2
       cursor: default
 
       & > svg
@@ -192,7 +189,7 @@ $primary: #046FD1
     top: 0
     left: 0
     width: 100vw
-    height: 70vh
+    height: 100vh
     background: $primary
     overflow-x: hidden
     overflow-y: auto
