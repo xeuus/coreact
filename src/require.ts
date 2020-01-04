@@ -13,7 +13,7 @@ export function RequireMiddleware(baseUrl: string, bundleUri: string, rootPath: 
       const pth = this.filename.toString().split('/');
       pth.pop();
 
-      const base = baseUrl + bundleUri + srcPath.substr(rootPath.length);
+      const base = bundleUri + srcPath.substr(rootPath.length);
       return base + path.resolve(pth.join('/'), p).substr(distPath.length);
     }
     return originalRequire.call(this, p);
