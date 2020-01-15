@@ -272,8 +272,8 @@ export class Server {
                 title={context.title}
                 locale={context.locale}
                 beginHead={<>
-                  {context.meta.map((m)=>{
-                    return <meta id={m.id} name={m.name} content={m.content} httpEquiv={m.httpEquiv}/>
+                  {context.meta.map((m, i) => {
+                    return <meta key={i} id={m.id} name={m.name} content={m.content} httpEquiv={m.httpEquiv} data-reserved={true}/>
                   })}
                   {p.beginOfHead}
                   <meta id="app-view-state" name="view-state" content={saltKey}/>

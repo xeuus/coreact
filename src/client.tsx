@@ -92,32 +92,32 @@ export class Client {
         return meta;
       },
       set(v: any): void {
-        meta = v;
-        document.head.querySelectorAll('meta[data-reserved="true"]').forEach((item) => {
-          document.head.removeChild(item);
-        });
-        meta.forEach((meta) => {
-          const m = document.createElement('meta');
-          if (meta.id) {
-            m.setAttribute('id', meta.id);
-          }
-          if (meta.name) {
-            m.setAttribute('name', meta.name);
-          }
-          if (meta.content) {
-            m.setAttribute('content', meta.content);
-          }
-          if (meta.httpEquiv) {
-            m.setAttribute('http-equiv', meta.httpEquiv);
-          }
-          m.setAttribute('data-reserved', 'true');
-          const firstChild = document.head.firstChild;
-          if(firstChild){
-            document.head.insertBefore(m, firstChild);
-          }else {
-            document.head.append(m);
-          }
-        });
+        // meta = v;
+        // document.head.querySelectorAll('meta[data-reserved="true"]').forEach((item) => {
+        //   document.head.removeChild(item);
+        // });
+        // meta.forEach((meta) => {
+        //   const m = document.createElement('meta');
+        //   if (meta.id) {
+        //     m.setAttribute('id', meta.id);
+        //   }
+        //   if (meta.name) {
+        //     m.setAttribute('name', meta.name);
+        //   }
+        //   if (meta.content) {
+        //     m.setAttribute('content', meta.content);
+        //   }
+        //   if (meta.httpEquiv) {
+        //     m.setAttribute('http-equiv', meta.httpEquiv);
+        //   }
+        //   m.setAttribute('data-reserved', 'true');
+        //   const firstChild = document.head.firstChild;
+        //   if(firstChild){
+        //     document.head.insertBefore(m, firstChild);
+        //   }else {
+        //     document.head.append(m);
+        //   }
+        // });
       }
     });
 

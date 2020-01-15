@@ -26,12 +26,11 @@ export class TodoView extends PureComponent<{}, StateType> implements ScreenEven
 
 
   async screenWillLoad(context: RequestContext) {
-    console.log('hello from home', context.params);
     context.title = 'salam';
     context.meta = [
       {
-        name: 'salam',
-        content: 'donya'
+        name: 'hello',
+        content: 'world'
       }
     ]
   }
