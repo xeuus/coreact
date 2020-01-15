@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Component, ComponentType, ReactElement} from 'react';
 import {clientRead} from './helpers/clientRead';
 import {RequestContext} from "./requestContext";
 import {MatchResult, MatchRoute} from "./helpers/match";
@@ -8,6 +8,7 @@ import {config, metadata, metadataOf} from "./shared";
 import debounce from "lodash/debounce";
 import throttle from "lodash/throttle";
 import {Client} from "./client";
+import {Redirect, Route, RouteComponentProps, Switch} from "react-router";
 
 export const delayedPersist = debounce(() => {
   Client.persist();
@@ -37,9 +38,9 @@ export function contextOf(bind: any) {
   return bind['context'];
 }
 
-export type TimerFunc =  {
-  start: ()=>any
-  stop: ()=>any
+export type TimerFunc = {
+  start: () => any
+  stop: () => any
 } & ((context: RequestContext) => void | false);
 
 export const restoreDataOnClientSide = (context: RequestContext) => {
@@ -136,6 +137,7 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
       const {key, delay, disabled} = data;
       let timer: any = null;
       let startDate: Date = null;
+
       function recall() {
         timer = setTimeout(() => {
           const response = service[key].call(service, {
@@ -161,7 +163,7 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
         enumerable: true,
         value: function () {
 
-          if(timer){
+          if (timer) {
             clearTimeout(timer);
             timer = null;
           }
@@ -172,7 +174,7 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
       });
       if (!disabled) {
 
-        if(timer){
+        if (timer) {
           clearTimeout(timer);
           timer = null;
         }
@@ -323,4 +325,129 @@ function replaceSingleMatch(url: string, pattern: string, key: string, value: st
     }
   }
   return path.join('/')
+}
+
+export async function callScreens(context: RequestContext, name: string) {
+  const pm = config.screens.reduce((acc, item) => {
+    const {order = 0, id, screen} = metadataOf(item.prototype);
+    if (!(screen.options.environment && context.environment != screen.options.environment)) {
+      const instance = new item({}, context);
+      if (instance[name]) {
+        const matched = MatchRoute(context.pathname, {
+          exact: screen.options.exact, sensitive: screen.options.sensitive, strict: screen.options.strict,
+          path: screen.pattern,
+        });
+        if (matched) {
+          acc.push({
+            id,
+            order,
+            func: instance[name],
+          });
+        }
+      }
+    }
+    return acc;
+  }, []).sort((a: any, b: any) => a.order - b.order);
+  for (let i = 0; i < pm.length; i++) {
+    const id = pm[i].id;
+    context.flags['screen'+id] = 1;
+    await pm[i].func(context);
+  }
+}
+
+export function setParams(context: RequestContext, a?: any) {
+  function call(item: any) {
+    const {screen} = metadataOf(item.prototype);
+    const matched = MatchRoute(context.pathname, {
+      exact: screen.options.exact, sensitive: screen.options.sensitive, strict: screen.options.strict,
+      path: screen.pattern,
+    });
+    if (matched) {
+      context.params = matched.params;
+    }
+  }
+  if(a) {
+    call(a);
+  }else {
+    config.screens.map(call)
+  }
+}
+
+export interface RoutedProps {
+  screen: any;
+}
+
+export function Routed(props: { screen: any }): any {
+  const {screen} = metadataOf(props.screen.prototype);
+  return (
+    <Route
+      component={props.screen}
+      path={screen.pattern}
+      exact={screen.options.exact}
+      sensitive={screen.options.sensitive}
+      strict={screen.options.strict}
+    />
+  );
+}
+
+
+export function Redirected(props: { from?: string, to: string;exact?: boolean;strict?: boolean; status?: 301 | 302; headers?: {[key: string]: any} }): any {
+  return null;
+}
+
+
+export function Switched(props: { children: ReactElement<any> | ReactElement<any>[] }) {
+  const {children} = props;
+
+  function call(item: any, i: number) {
+    const {props} = item;
+    if(props.screen) {
+      const {id, screen} = metadataOf(props.screen.prototype);
+      return (
+        <Route
+          key={i}
+          path={screen.pattern}
+          exact={screen.options.exact}
+          sensitive={screen.options.sensitive}
+          strict={screen.options.strict}
+          render={(data: any) => {
+          if (data.staticContext) {
+            data.staticContext.status = screen.status || 200;
+            data.staticContext.headers = screen.headers || {};
+          }
+          return React.createElement(props.screen, data);
+        }}/>
+      );
+    } else if (!!props.to) {
+      return (
+        <Route
+          key={i}
+          render={(data: any) => {
+            if (data.staticContext) {
+              data.staticContext.status = props.status || 301;
+              data.staticContext.headers = props.headers || {};
+            }
+            return (
+              <Redirect
+                from={props.from || '*'}
+                to={props.to}
+                exact={props.exact}
+                strict={props.strict}
+              />
+            )
+          }}/>
+      );
+    }
+    return null;
+  }
+  if (Array.isArray(children)) {
+    return <Switch>
+      {children.map(call)}
+    </Switch>;
+  } else {
+    const a = props.children as any;
+    if (a) {
+      call(a, 0);
+    }
+  }
 }

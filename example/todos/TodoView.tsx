@@ -1,7 +1,7 @@
 import './styles.sass';
 import React, {PureComponent} from 'react';
 import {TodoService} from './TodoService';
-import {Autowired, Observer, RoutingService} from "../../src";
+import {Autowired, Observer, RequestContext, ScreenEvents, RoutingService, Screen} from "../../src";
 import {routes} from "../routes";
 import {LocaleService} from "./LocaleService";
 import {Assets} from "../assets";
@@ -10,8 +10,9 @@ interface StateType {
   message: string,
 }
 
+@Screen(routes.todoList, {exact: true, environment: 'server'})
 @Observer([TodoService, LocaleService])
-export class TodoView extends PureComponent<{}, StateType> {
+export class TodoView extends PureComponent<{}, StateType> implements ScreenEvents {
 
   todo = Autowired(TodoService, this);
   router = Autowired(RoutingService, this);
@@ -22,6 +23,18 @@ export class TodoView extends PureComponent<{}, StateType> {
   };
 
   changeText = (message: string) => this.setState({message});
+
+
+  async screenWillLoad(context: RequestContext) {
+    console.log('hello from home', context.params);
+    context.title = 'salam';
+    context.meta = [
+      {
+        name: 'salam',
+        content: 'donya'
+      }
+    ]
+  }
 
   render() {
     const {message} = this.state;
@@ -35,7 +48,8 @@ export class TodoView extends PureComponent<{}, StateType> {
 
       <div className="todo-wrapper">
         <div className="todo-input-container">
-          <input type="text" placeholder="Write something..." value={message} onChange={e => this.changeText(e.target.value)}/>
+          <input type="text" placeholder="Write something..." value={message}
+                 onChange={e => this.changeText(e.target.value)}/>
           <button className="add-todo-button" onClick={() => {
             this.todo.addTodo(message);
             this.setState({message: ''});

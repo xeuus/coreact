@@ -1,3 +1,9 @@
+export type Meta = {
+  id?: string;
+  httpEquiv?: string;
+  name: string;
+  content: string;
+}
 export type RequestContext = {
   url: string;
   pathname: string;
@@ -23,4 +29,7 @@ export type RequestContext = {
   dateTime: Date;
   services: any[];
   environment: 'none' | 'server' | 'client';
+  flags: any,
+  title: string,
+  meta: Meta[],
 };

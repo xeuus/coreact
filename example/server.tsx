@@ -19,6 +19,7 @@ const server = new Server({
       address: 'http://localhost:4201/api',
     }
   },
+  allowRedirect: true,
   publicDir: ['/assets', path.resolve(__dirname, '../../assets')],
   bundleDir: ['/dist', path.resolve(__dirname, '../../bundle')],
   webpackOptions: require('../../webpack.config.js'),

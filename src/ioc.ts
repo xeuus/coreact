@@ -3,6 +3,9 @@ import {EventBus} from "./eventBus";
 import {CoreContext} from "./context";
 import {config, metadata, metadataOf} from "./shared";
 import debounce from "lodash/debounce";
+import {callScreens, setParams} from "./service";
+import {MatchRoute} from "./helpers/match";
+
 export interface ServiceEvents {
   serviceWillLoad?(context: RequestContext): Promise<any>;
 
@@ -13,19 +16,50 @@ export interface ServiceEvents {
   migrate?(data: any, fromVersion: number, toVersion: number): Promise<any>;
 }
 
+export interface ScreenEvents {
+  screenWillLoad?(context: RequestContext): Promise<any>;
+}
+
+export interface RouteOptions {
+  exact?: boolean,
+  sensitive?: boolean,
+  strict?: boolean,
+  environment?: 'client' | 'server',
+  sync?: boolean,
+  status?: number,
+  headers?: { [key: string]: string }
+}
+
+
+export function Screen(pattern?: string, options: RouteOptions = {}) {
+  return (target: any) => {
+    const id = config.screen++;
+    config.screens[id] = target;
+    metadata(target.prototype, {
+      id,
+      screen: {
+        pattern,
+        options,
+      }
+    });
+  };
+}
+
+
 export function Consumer(target: any) {
   return Observer([])(target)
-
 }
 
 export function Observer(types?: { new(context?: RequestContext): any }[], ...keys: string[]) {
   return function (target: any) {
     const original = target;
     const func = function (props: any, context: RequestContext) {
-      const {observers = []} = metadataOf(target.prototype);
+      const {id, observers = [], screen} = metadataOf(target.prototype);
       const component = this;
       const release: any[] = [];
-      const originalDidMount = this.componentDidMount;
+      if (this.screenWillLoad) {
+        this.screenWillLoad = this.screenWillLoad.bind(this);
+      }
       this.released = false;
       this.delayedRefresh = debounce(() => {
         if (this.released)
@@ -36,6 +70,7 @@ export function Observer(types?: { new(context?: RequestContext): any }[], ...ke
           }
         });
       }, 25);
+      const originalDidMount = this.componentDidMount;
       this.componentDidMount = function (...args: any[]) {
         if (types && types.length > 0) {
           types.forEach(typ => {
@@ -74,6 +109,31 @@ export function Observer(types?: { new(context?: RequestContext): any }[], ...ke
         }
         release.forEach(func => func());
       };
+
+      if (screen && context.environment === 'client') {
+        const originalWillMount = this.UNSAFE_componentWillMount;
+        this.UNSAFE_componentWillMount = function (...args: any[]) {
+          if (!(screen.options.environment && context.environment != screen.options.environment)) {
+            const old = typeof context.flags['screen' + id] === 'undefined';
+            const matched = MatchRoute(context.pathname, {
+              exact: screen.options.exact, sensitive: screen.options.sensitive, strict: screen.options.strict,
+              path: screen.pattern,
+            });
+
+            if (old === !!matched || context.flags['screen' + id] > 1) {
+              setParams(context, target);
+              if (component.screenWillLoad) {
+                component.screenWillLoad.call(this, context);
+              }
+            }
+            context.flags['screen' + id] = context.flags['screen' + id] || 1;
+            context.flags['screen' + id]++;
+          }
+          if (originalWillMount) {
+            originalWillMount.apply(this, args)
+          }
+        };
+      }
       return original.call(this, props, context);
     };
     func.contextType = CoreContext;
@@ -134,7 +194,7 @@ export function Observable(target: any, key: string) {
   });
 }
 
-export function Route(pattern?: string, options: { exact?: boolean, sensitive?: boolean, strict?: boolean, environment?: 'client' | 'server', sync?: boolean } = {}) {
+export function Route(pattern?: string, options: RouteOptions = {}) {
   return (target: any, key: string) => {
     const {fetch = []} = metadataOf(target);
     metadata(target, {

@@ -2,8 +2,10 @@ import {RequestContext} from "./requestContext";
 import {DeserializeQuery} from "./param";
 import {MatchRoute} from "./helpers/match";
 export const config = {
+  screen: 0,
   counter: 0,
   services: [] as any[],
+  screens: [] as any[],
 };
 export function metadataOf(target: any) {
   return target.__metadata__ || {};

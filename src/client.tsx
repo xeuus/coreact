@@ -2,13 +2,20 @@ import React from 'react';
 import {hydrate, render} from 'react-dom';
 import {AppProvider} from './appProvider';
 import {ViewHolder} from './helpers/viewHolder';
-import {gatherAsyncProperties, gatherMethods, registerServices, restoreDataOnClientSide} from './service';
+import {
+  callScreens,
+  gatherAsyncProperties,
+  gatherMethods,
+  registerServices,
+  restoreDataOnClientSide,
+  setParams
+} from './service';
 import {baseUrl, dateTime} from './helpers/viewState';
 import {UserAgent} from 'express-useragent';
 import {registerPersistClient, restorePersistedDataOnClientSide} from "./persistClientSide";
 import {ConnectedRouter} from "./connectedRouter";
 import {decomposeUrl, DeserializeQuery, ParseCookies} from "./param";
-import {RequestContext} from "./requestContext";
+import {Meta, RequestContext} from "./requestContext";
 import {ContextProvider} from "./context";
 import {clientRead} from "./helpers/clientRead";
 import {fillQueries} from "./shared";
@@ -17,6 +24,7 @@ import jsCookie from 'js-cookie';
 
 export class Client {
   hydrate: any = null;
+
   constructor(provider: typeof AppProvider) {
     let proto = window.location.protocol;
     const idx = proto.indexOf(':');
@@ -25,6 +33,16 @@ export class Client {
     const url = decomposeUrl(rawUrl);
     const system = JSON.parse(clientRead('system', true));
     let locale = system.locale;
+    const metaHtml = document.head.querySelectorAll('meta[data-reserved="true"]');
+    let meta: Meta[] = [];
+    metaHtml.forEach((item) => {
+      meta.push({
+        id: item.getAttribute('id') || undefined,
+        httpEquiv: item.getAttribute('httpEquiv') || undefined,
+        content: item.getAttribute('content') || undefined,
+        name: item.getAttribute('name') || undefined,
+      })
+    });
     const context: RequestContext = {
       autoPersist: system.delayedPersist,
       mode: system.mode,
@@ -50,7 +68,58 @@ export class Client {
       services: [],
       environment: 'client',
       encrypt: system.encrypt,
+      flags: {},
+      meta: meta,
+      title: document.title,
     };
+
+    Object.defineProperty(context, 'title', {
+      configurable: false,
+      enumerable: true,
+      get(): any {
+        return document.title;
+      },
+      set(v: any): void {
+        document.title = v;
+      }
+    });
+
+
+    Object.defineProperty(context, 'meta', {
+      configurable: false,
+      enumerable: true,
+      get(): any {
+        return meta;
+      },
+      set(v: any): void {
+        meta = v;
+        document.head.querySelectorAll('meta[data-reserved="true"]').forEach((item) => {
+          document.head.removeChild(item);
+        });
+        meta.forEach((meta) => {
+          const m = document.createElement('meta');
+          if (meta.id) {
+            m.setAttribute('id', meta.id);
+          }
+          if (meta.name) {
+            m.setAttribute('name', meta.name);
+          }
+          if (meta.content) {
+            m.setAttribute('content', meta.content);
+          }
+          if (meta.httpEquiv) {
+            m.setAttribute('http-equiv', meta.httpEquiv);
+          }
+          m.setAttribute('data-reserved', 'true');
+          const firstChild = document.head.firstChild;
+          if(firstChild){
+            document.head.insertBefore(m, firstChild);
+          }else {
+            document.head.append(m);
+          }
+        });
+      }
+    });
 
     Object.defineProperty(context, 'query', {
       configurable: false,
@@ -101,7 +170,7 @@ export class Client {
           const cookie = v[key];
           if (typeof cookie === 'undefined' || cookie === null) {
             jsCookie.set(key, '', {expires: new Date(0)});
-          }else {
+          } else {
             jsCookie.set(key, cookie);
           }
         })
@@ -122,10 +191,11 @@ export class Client {
       }
     });
     registerServices(context);
-    if(context.mode=='development'){
+    if (context.mode == 'development') {
       (window as any).context = context;
     }
     fillQueries(url.pathname, url.search, context);
+    setParams(context);
     const p = new provider(context);
     const element = document.getElementById(p.name);
     const app = <ViewHolder
@@ -144,6 +214,7 @@ export class Client {
         }
         await p.providerDidLoad(context);
         await gatherMethods(context, 'serviceDidLoad');
+        await callScreens(context, 'screenWillLoad');
       }}>{
       () => <ContextProvider context={context}>
         <ConnectedRouter>{p.application}</ConnectedRouter>
@@ -161,6 +232,7 @@ export class Client {
       });
     }
   }
+
   static persist = () => {
   };
   static clearStorage = () => {

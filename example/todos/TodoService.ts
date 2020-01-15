@@ -1,7 +1,6 @@
-import {Autowired, Debounced, Observable, Order, Piped, RequestContext, Route, Service, Timer} from '../../src';
+import {Autowired, Debounced, Observable, Order, Piped, RequestContext, Route, Service} from '../../src';
 import {routes} from '../routes';
 import {Networking} from "./Networking";
-import {TimerFunc} from "../../src/service";
 
 export interface Todo {
   id: number,

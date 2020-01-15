@@ -9,14 +9,16 @@ export type HtmlProps = {
   baseUrl?: string;
   children?: string | React.ReactNode;
   locale?: string;
+  title?: string;
 }
 export const Html = (props: HtmlProps) => {
-  const {id = 'app', locale = 'en', beginHead, endHead, beginBody, endBody, baseUrl, children} = props;
+  const {id = 'app', locale = 'en', title = 'Coreact', beginHead, endHead, beginBody, endBody, baseUrl, children} = props;
   return <html lang={locale} dir={checkRtl(locale) ? 'rtl' : 'ltr'}>
   <head>
     {beginHead}
     <meta charSet="utf-8"/>
     <meta id="baseUrl" name="baseUrl" content={baseUrl || ''}/>
+    <title>{title}</title>
     {endHead}
   </head>
   <body>

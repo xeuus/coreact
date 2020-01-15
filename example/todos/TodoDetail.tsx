@@ -1,19 +1,20 @@
+import React, {PureComponent} from 'react';
+import {Autowired, Observer, RoutingService, Screen, ScreenEvents} from '../../src';
+import {TodoService} from './TodoService';
+import {routes} from "../routes";
 
-import React, { PureComponent } from 'react';
-import {Autowired, Observer, RoutingService} from '../../src';
-import { TodoService } from './TodoService';
-
+@Screen(routes.todoDetail(), {exact: true, environment: 'client'})
 @Observer([TodoService])
-export class TodoDetail extends PureComponent{
+export class TodoDetail extends PureComponent {
   todo = Autowired(TodoService, this);
   router = Autowired(RoutingService, this);
 
-  render(){
+  render() {
     const todo = this.todo.currentTodo;
     return <div className="todo-page-container">
       <div className="todo-wrapper">
-        {todo &&  <div className="todo-list">
-           <div className={`todo-item ${todo.completed ? 'completed' : ''}`}>
+        {todo && <div className="todo-list">
+          <div className={`todo-item ${todo.completed ? 'completed' : ''}`}>
             <div className="todo-content">
               <a href="#" className="title" onClick={(e) => {
                 e.preventDefault();

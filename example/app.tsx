@@ -1,16 +1,16 @@
-import React, { PureComponent } from 'react';
-import { TodoView } from './todos/TodoView';
-import { Route, Switch } from 'react-router';
-import { routes } from './routes';
-import { TodoDetail } from './todos/TodoDetail';
+import React, {PureComponent} from 'react';
+import {TodoView} from './todos/TodoView';
+import {TodoDetail} from './todos/TodoDetail';
+import {Redirected, Routed, Switched} from "../src/service";
 
 export class App extends PureComponent {
   render() {
     return <>
-      <Switch>
-        <Route path={routes.todoList} component={TodoView} exact/>
-        <Route path={routes.todoDetail()} component={TodoDetail} exact/>
-      </Switch>
+      <Switched>
+        <Routed screen={TodoView}/>
+        <Routed screen={TodoDetail}/>
+        <Redirected from="*" to="/"/>
+      </Switched>
     </>
   }
 }

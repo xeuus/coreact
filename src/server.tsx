@@ -5,7 +5,14 @@ import {Html} from './helpers/html';
 import {wrapHtml} from './helpers/wrapHtml';
 import {StaticRouter} from 'react-router';
 import httpProxy from 'http-proxy';
-import {extractDataOnServerSide, gatherAsyncProperties, gatherMethods, registerServices} from './service';
+import {
+  callScreens,
+  extractDataOnServerSide,
+  gatherAsyncProperties,
+  gatherMethods,
+  registerServices,
+  setParams
+} from './service';
 import {ServerPortal} from './helpers/serverPortal';
 import {AppProvider} from './appProvider';
 import {RequestContext} from "./requestContext";
@@ -185,6 +192,8 @@ export class Server {
       const rawUrl = req.url.substr(baseUrl.length);
       const url = decomposeUrl(rawUrl);
       const context: RequestContext = {
+        title: 'Coreact',
+        meta: [],
         autoPersist: delayedPersist,
         mode: mode,
         url: rawUrl,
@@ -206,6 +215,7 @@ export class Server {
         storagePrefix: storagePrefix,
         version: version,
         encrypt: encrypt,
+        flags: {},
         locale: 'en',
         env: envKeys.reduce((acc, key) => {
           acc[key] = process.env[key];
@@ -234,6 +244,7 @@ export class Server {
       }, {} as any) : {};
       registerServices(context);
       fillQueries(url.pathname, url.search, context);
+      setParams(context);
       const p = new provider(context);
       try {
         await gatherMethods(context, 'serviceWillLoad');
@@ -245,6 +256,7 @@ export class Server {
         }
         await p.providerDidLoad(context);
         await gatherMethods(context, 'serviceDidLoad');
+        await callScreens(context, 'screenWillLoad');
         const saltKey = randomString(50);
         const iso = now.toISOString();
         const cipher = saltKey + iso;
@@ -257,8 +269,12 @@ export class Server {
             <StaticRouter basename={baseUrl} location={req.url} context={routerContext}>
               <Html
                 id={p.name}
+                title={context.title}
                 locale={context.locale}
                 beginHead={<>
+                  {context.meta.map((m)=>{
+                    return <meta id={m.id} name={m.name} content={m.content} httpEquiv={m.httpEquiv}/>
+                  })}
                   {p.beginOfHead}
                   <meta id="app-view-state" name="view-state" content={saltKey}/>
                   <meta id="app-token" name="token" content={randomString(10)}/>
@@ -330,11 +346,13 @@ export class Server {
           }
         });
         res.setHeader('Content-Type', 'text/html;charset=utf-8');
+        const hds = routerContext.headers || {};
+        Object.keys(hds).forEach(key => res.setHeader(key, hds[key]));
         if (routerContext.url && allowRedirect) {
-          res.redirect(301, routerContext.url);
+          res.redirect(routerContext.status || 301, routerContext.url);
           return
         }
-        res.statusCode = 200;
+        res.statusCode = routerContext.status || 200;
         res.end(wrapHtml(html));
       } catch (e) {
         res.statusCode = 500;
