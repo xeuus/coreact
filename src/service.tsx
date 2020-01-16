@@ -350,7 +350,7 @@ export async function callScreens(context: RequestContext, name: string) {
   }, []).sort((a: any, b: any) => a.order - b.order);
   for (let i = 0; i < pm.length; i++) {
     const id = pm[i].id;
-    context.flags['screen'+id] = 1;
+    context.flags['screen' + id] = 1;
     await pm[i].func(context);
   }
 }
@@ -366,9 +366,10 @@ export function setParams(context: RequestContext, a?: any) {
       context.params = matched.params;
     }
   }
-  if(a) {
+
+  if (a) {
     call(a);
-  }else {
+  } else {
     config.screens.map(call)
   }
 }
@@ -381,17 +382,22 @@ export function Routed(props: { screen: any }): any {
   const {screen} = metadataOf(props.screen.prototype);
   return (
     <Route
-      component={props.screen}
       path={screen.pattern}
       exact={screen.options.exact}
       sensitive={screen.options.sensitive}
       strict={screen.options.strict}
-    />
+      render={(data: any) => {
+        if (data.staticContext) {
+          data.staticContext.status = screen.status || 200;
+          data.staticContext.headers = screen.headers || {};
+        }
+        return React.createElement(props.screen, data);
+      }}/>
   );
 }
 
 
-export function Redirected(props: { from?: string, to: string;exact?: boolean;strict?: boolean; status?: 301 | 302; headers?: {[key: string]: any} }): any {
+export function Redirected(props: { from?: string, to: string; exact?: boolean; strict?: boolean; status?: 301 | 302; headers?: { [key: string]: any } }): any {
   return null;
 }
 
@@ -401,7 +407,7 @@ export function Switched(props: { children: ReactElement<any> | ReactElement<any
 
   function call(item: any, i: number) {
     const {props} = item;
-    if(props.screen) {
+    if (props.screen) {
       const {id, screen} = metadataOf(props.screen.prototype);
       return (
         <Route
@@ -411,12 +417,12 @@ export function Switched(props: { children: ReactElement<any> | ReactElement<any
           sensitive={screen.options.sensitive}
           strict={screen.options.strict}
           render={(data: any) => {
-          if (data.staticContext) {
-            data.staticContext.status = screen.status || 200;
-            data.staticContext.headers = screen.headers || {};
-          }
-          return React.createElement(props.screen, data);
-        }}/>
+            if (data.staticContext) {
+              data.staticContext.status = screen.status || 200;
+              data.staticContext.headers = screen.headers || {};
+            }
+            return React.createElement(props.screen, data);
+          }}/>
       );
     } else if (!!props.to) {
       return (
@@ -440,6 +446,7 @@ export function Switched(props: { children: ReactElement<any> | ReactElement<any
     }
     return null;
   }
+
   if (Array.isArray(children)) {
     return <Switch>
       {children.map(call)}
