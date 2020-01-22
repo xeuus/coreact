@@ -23,7 +23,7 @@ brew install homebrew/dupes/make
 which -a make
 
 # Ubuntu/Debian
-apt-get install build-essential
+sudo apt-get install build-essential
 ```
 
 Now you can open your browser, and see if the app is running
