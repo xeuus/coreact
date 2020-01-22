@@ -1,10 +1,8 @@
----
-description: Build maintainable Frontend applications at glance of time.
----
-
 # Getting Started
 
-## Start using COREACT
+## COREACT
+
+Build maintainable Frontend applications at glance of time.
 
 ```
 $ git clone https://github.com/xeuus/coreact-template
@@ -29,6 +27,4 @@ apt-get install build-essential
 ```
 
 Now you can open your browser, and see if the app is running
-
-### Project Structure
 
