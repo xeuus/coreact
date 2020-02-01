@@ -1,7 +1,7 @@
 import './styles.sass';
 import React, {PureComponent} from 'react';
 import {TodoService} from './TodoService';
-import {Autowired, Observer, RequestContext, ScreenEvents, RoutingService, Screen} from "../../src";
+import {Autowired, Observer, RequestContext, ScreenEvents, RoutingService, Screen, optional} from "../../src";
 import {routes} from "../routes";
 import {LocaleService} from "./LocaleService";
 import {Assets} from "../assets";
@@ -26,13 +26,7 @@ export class TodoView extends PureComponent<{}, StateType> implements ScreenEven
 
 
   async screenWillLoad(context: RequestContext) {
-    context.title = 'salam';
-    context.meta = [
-      {
-        name: 'hello',
-        content: 'world'
-      }
-    ]
+    optional(() => context.title = 'hello world');
   }
 
   render() {

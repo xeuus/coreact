@@ -1,4 +1,4 @@
-import React, {Component, ComponentType, ReactElement} from 'react';
+import React, {Component, ComponentType, PureComponent, ReactElement} from 'react';
 import {clientRead} from './helpers/clientRead';
 import {RequestContext} from "./requestContext";
 import {MatchResult, MatchRoute} from "./helpers/match";
@@ -401,60 +401,121 @@ export function Redirected(props: { from?: string, to: string; exact?: boolean; 
   return null;
 }
 
-
-export function Switched(props: { children: ReactElement<any> | ReactElement<any>[] }) {
-  const {children} = props;
-
-  function call(item: any, i: number) {
-    const {props} = item;
-    if (props.screen) {
-      const {id, screen} = metadataOf(props.screen.prototype);
-      return (
-        <Route
-          key={i}
-          path={screen.pattern}
-          exact={screen.options.exact}
-          sensitive={screen.options.sensitive}
-          strict={screen.options.strict}
-          render={(data: any) => {
-            if (data.staticContext) {
-              data.staticContext.status = screen.status || 200;
-              data.staticContext.headers = screen.headers || {};
-            }
-            return React.createElement(props.screen, data);
-          }}/>
-      );
-    } else if (!!props.to) {
-      return (
-        <Route
-          key={i}
-          render={(data: any) => {
-            if (data.staticContext) {
-              data.staticContext.status = props.status || 301;
-              data.staticContext.headers = props.headers || {};
-            }
-            return (
-              <Redirect
-                from={props.from || '*'}
-                to={props.to}
-                exact={props.exact}
-                strict={props.strict}
-              />
-            )
-          }}/>
-      );
-    }
+function callScreen(item: any, i: number) {
+  if (!item) {
     return null;
   }
+  const {props} = item;
+  if (props.screen) {
+    const {id, screen} = metadataOf(props.screen.prototype);
+    return (
+      <Route
+        key={i}
+        path={screen.pattern}
+        exact={screen.options.exact}
+        sensitive={screen.options.sensitive}
+        strict={screen.options.strict}
+        render={(data: any) => {
+          if (data.staticContext) {
+            data.staticContext.status = screen.status || 200;
+            data.staticContext.headers = screen.headers || {};
+          }
+          return React.createElement(props.screen, data);
+        }}/>
+    );
+  } else if (!!props.to) {
+    return (
+      <Route
+        key={i}
+        render={(data: any) => {
+          if (data.staticContext) {
+            data.staticContext.status = props.status || 301;
+            data.staticContext.headers = props.headers || {};
+          }
+          return (
+            <Redirect
+              from={props.from || '*'}
+              to={props.to}
+              exact={props.exact}
+              strict={props.strict}
+            />
+          )
+        }}/>
+    );
+  }
+  return null;
+}
 
+export function Switched(props: { children?: ReactElement<any> | ReactElement<any>[] }) {
+  const {children} = props;
   if (Array.isArray(children)) {
     return <Switch>
-      {children.map(call)}
+      {children.map(callScreen)}
     </Switch>;
   } else {
     const a = props.children as any;
     if (a) {
-      call(a, 0);
+      callScreen(a, 0);
     }
+  }
+}
+
+function escapeRegExp(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function convertWildcardStringToRegExp(expression: string) {
+  const terms = expression.split('*');
+
+  let trailingWildcard = false;
+
+  let expr = '';
+  for (var i = 0; i < terms.length; i++) {
+    if (terms[i]) {
+      if (i > 0 && terms[i - 1]) {
+        expr += '.*';
+      }
+      trailingWildcard = false;
+      expr += escapeRegExp(terms[i]);
+    } else {
+      trailingWildcard = true;
+      expr += '.*';
+    }
+  }
+
+  if (!trailingWildcard) {
+    expr += '.*';
+  }
+
+  return new RegExp('^' + expr + '$', 'i');
+}
+
+export interface GroupedProps {
+  group?: string,
+  children?: any
+}
+
+export class Grouped extends PureComponent<GroupedProps> {
+  private static defaultProps = {
+    group: '*'
+  };
+  checker = convertWildcardStringToRegExp(this.props.group);
+
+  screens = config.screens.filter((item) => {
+    const {screen} = metadataOf(item.prototype);
+    const gp = screen.options.group || '';
+    return this.checker.test(gp);
+  }).sort((a: any, b: any) => {
+    const {order: ao} = metadataOf(a.prototype);
+    const {order: bo} = metadataOf(b.prototype);
+    return ao - bo;
+  });
+
+  public render() {
+    const {children} = this.props;
+    return <Switch>
+      {this.screens.map((screen, i) => callScreen({props: {screen}}, i))}
+      {Array.isArray(children) ? children.map(callScreen) : callScreen(children, 0)}
+    </Switch>;
   }
 }

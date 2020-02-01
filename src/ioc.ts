@@ -27,6 +27,7 @@ export interface RouteOptions {
   environment?: 'client' | 'server',
   sync?: boolean,
   status?: number,
+  group?: string,
   headers?: { [key: string]: string }
 }
 

@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {Autowired, Observer, RequestContext, RoutingService, Screen, ScreenEvents} from '../../src';
+import {Autowired, Observer, optional, RequestContext, RoutingService, Screen, ScreenEvents} from '../../src';
 import {TodoService} from './TodoService';
 import {routes} from "../routes";
 
@@ -10,12 +10,7 @@ export class TodoDetail extends PureComponent implements ScreenEvents{
   router = Autowired(RoutingService, this);
 
   async screenWillLoad(context: RequestContext) {
-    context.meta = [
-      ...context.meta, {
-        name: 'description',
-        content: this.todo.currentTodo.message,
-      }
-    ];
+    optional(() => context.title = this.todo.currentTodo.message);
   }
 
   render() {
