@@ -53,7 +53,6 @@ export const registerPersistClient = (context: RequestContext, initial: any) => 
   };
 
   Client.reset = (service) => {
-    context.cookies = {};
     if(service) {
       const {id} = metadataOf(service.prototype);
       const saved = initial[id];
@@ -61,6 +60,7 @@ export const registerPersistClient = (context: RequestContext, initial: any) => 
         context.services[id][key] = saved[key];
       });
     }else {
+      context.cookies = {};
       Object.keys(initial).forEach((id) => {
         const saved = initial[id];
         Object.keys(saved).forEach((key) => {
