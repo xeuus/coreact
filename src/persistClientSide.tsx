@@ -6,10 +6,12 @@ import {gatherMethods} from "./service";
 
 export const saveInitialValues = (context: RequestContext) => {
   return context.services.reduce((acc, service) => {
-    const {id, persist = []} = metadataOf(service);
-    if (persist.length > 0) {
+    const {id, persist = [], save = []} = metadataOf(service);
+
+    const keys = [...persist, ...save];
+    if (keys.length > 0) {
       const obj: any = {};
-      persist.forEach((data: any) => {
+      keys.forEach((data: any) => {
         const {key} = data;
         obj[key] = service[key];
       });
@@ -36,6 +38,7 @@ export const registerPersistClient = (context: RequestContext, initial: any) => 
     });
   };
   Client.clearStorage = () => {
+    Client.reset();
     context.services.forEach((service) => {
       const {id} = metadataOf(service);
       const key = `${context.storagePrefix}_bridge${id}`;
@@ -43,14 +46,15 @@ export const registerPersistClient = (context: RequestContext, initial: any) => 
     });
   };
   Client.drainService = (service) => {
-    const {id} = metadataOf(service);
+    Client.reset(service);
+    const {id} = metadataOf(service.prototype);
     const key = `${context.storagePrefix}_bridge${id}`;
     localStorage.removeItem(key)
   };
 
   Client.reset = (service) => {
     if(service) {
-      const {id} = metadataOf(service);
+      const {id} = metadataOf(service.prototype);
       const saved = initial[id];
       Object.keys(saved).forEach((key) => {
         context.services[id][key] = saved[key];
