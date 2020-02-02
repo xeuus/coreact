@@ -12,7 +12,7 @@ import {
 } from './service';
 import {baseUrl, dateTime} from './helpers/viewState';
 import {UserAgent} from 'express-useragent';
-import {registerPersistClient, restorePersistedDataOnClientSide} from "./persistClientSide";
+import {registerPersistClient, restorePersistedDataOnClientSide, saveInitialValues} from "./persistClientSide";
 import {ConnectedRouter} from "./connectedRouter";
 import {decomposeUrl, DeserializeQuery, ParseCookies} from "./param";
 import {Meta, RequestContext} from "./requestContext";
@@ -202,7 +202,8 @@ export class Client {
       splash={p.splash}
       error={p.failure}
       process={async () => {
-        registerPersistClient(context);
+        const initial = saveInitialValues(context);
+        registerPersistClient(context, initial);
         restorePersistedDataOnClientSide(context);
         restoreDataOnClientSide(context);
         await gatherMethods(context, 'serviceWillLoad');
@@ -239,4 +240,6 @@ export class Client {
   };
   static drainService = (service: { new(context?: RequestContext): any }) => {
   };
+
+  static reset = (service?: { new(context?: RequestContext): any }) => {}
 }

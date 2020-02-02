@@ -3,7 +3,23 @@ import {RequestContext} from "./requestContext";
 import {metadataOf} from "./shared";
 import {Client} from "./client";
 import {gatherMethods} from "./service";
-export const registerPersistClient = (context: RequestContext) => {
+
+export const saveInitialValues = (context: RequestContext) => {
+  return context.services.reduce((acc, service) => {
+    const {id, persist = []} = metadataOf(service);
+    if (persist.length > 0) {
+      const obj: any = {};
+      persist.forEach((data: any) => {
+        const {key} = data;
+        obj[key] = service[key];
+      });
+      acc[id] = obj;
+    }
+    return acc;
+  }, {} as any);
+};
+
+export const registerPersistClient = (context: RequestContext, initial: any) => {
   Client.persist = () => {
     context.services.forEach((service) => {
       const {id, persist = []} = metadataOf(service);
@@ -30,6 +46,23 @@ export const registerPersistClient = (context: RequestContext) => {
     const {id} = metadataOf(service);
     const key = `${context.storagePrefix}_bridge${id}`;
     localStorage.removeItem(key)
+  };
+
+  Client.reset = (service) => {
+    if(service) {
+      const {id} = metadataOf(service);
+      const saved = initial[id];
+      Object.keys(saved).forEach((key) => {
+        context.services[id][key] = saved[key];
+      });
+    }else {
+      Object.keys(initial).forEach((id) => {
+        const saved = initial[id];
+        Object.keys(saved).forEach((key) => {
+          context.services[+id][key] = saved[key];
+        });
+      })
+    }
   };
   let lock = false;
   function lockedSave() {
