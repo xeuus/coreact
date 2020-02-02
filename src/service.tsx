@@ -43,7 +43,7 @@ export type TimerFunc = {
   stop: () => any
 } & ((context: RequestContext) => void | false);
 
-export const restoreDataOnClientSide = (context: RequestContext) => {
+export const restoreDataOnClientSide = (context: RequestContext, initial: any) => {
   context.services.forEach((service) => {
     const {id, save = []} = metadataOf(service);
     const data = clientRead(`bridge${id}`, context.encrypt);
@@ -56,6 +56,7 @@ export const restoreDataOnClientSide = (context: RequestContext) => {
         const {key} = data;
         if (json[key]) {
           service[key] = json[key];
+          initial[id][key] = json[key];
         }
       });
     }

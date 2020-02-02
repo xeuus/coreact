@@ -205,7 +205,7 @@ export class Client {
         const initial = saveInitialValues(context);
         registerPersistClient(context, initial);
         restorePersistedDataOnClientSide(context);
-        restoreDataOnClientSide(context);
+        restoreDataOnClientSide(context, initial);
         await gatherMethods(context, 'serviceWillLoad');
         await p.providerWillLoad(context);
         try {
@@ -234,6 +234,8 @@ export class Client {
     }
   }
 
+  static clearCookies = () => {
+  };
   static persist = () => {
   };
   static clearStorage = () => {

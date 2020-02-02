@@ -1,6 +1,6 @@
 {
   "name": "coreact",
-  "version": "3.4.9",
+  "version": "3.5.0",
   "description": "React server-side, service oriented programming.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

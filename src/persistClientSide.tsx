@@ -60,10 +60,6 @@ export const registerPersistClient = (context: RequestContext, initial: any) => 
         context.services[id][key] = saved[key];
       });
     }else {
-      context.cookies = Object.keys(context.cookies).reduce((acc, key) => {
-        acc[key] = null;
-        return acc;
-      }, {} as any);
       Object.keys(initial).forEach((id) => {
         const saved = initial[id];
         Object.keys(saved).forEach((key) => {
@@ -71,6 +67,12 @@ export const registerPersistClient = (context: RequestContext, initial: any) => 
         });
       })
     }
+  };
+  Client.clearCookies = () => {
+    context.cookies = Object.keys(context.cookies).reduce((acc, key) => {
+      acc[key] = null;
+      return acc;
+    }, {} as any);
   };
   let lock = false;
   function lockedSave() {
