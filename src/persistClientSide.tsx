@@ -53,6 +53,7 @@ export const registerPersistClient = (context: RequestContext, initial: any) => 
   };
 
   Client.reset = (service) => {
+    context.cookies = {};
     if(service) {
       const {id} = metadataOf(service.prototype);
       const saved = initial[id];
