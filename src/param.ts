@@ -104,7 +104,7 @@ function parseBlock(block: string) {
             obj[key] = false;
           } else {
             v = decodeURIComponent(v);
-            const num = /[0-9+-.]+$/.test(v) && !v.startsWith('0');
+            const num = /^[+-]?([0-9]*[.])?[0-9]+$/.test(v);
             if (!num) {
               obj[key] = v;
             } else {
