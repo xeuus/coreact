@@ -108,7 +108,7 @@ export const restorePersistedDataOnClientSide = (context: RequestContext) => {
             }else {
               persist.forEach((data: any) => {
                 const {key} = data;
-                if (typeof json[key] !== 'undefined' && json[key] !== null) {
+                if (typeof json[key] !== 'undefined') {
                   service[key] = json[key];
                 }
               });

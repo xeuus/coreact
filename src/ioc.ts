@@ -18,6 +18,7 @@ export interface ServiceEvents {
 
 export interface ScreenEvents {
   screenWillLoad?(context: RequestContext): Promise<any>;
+  serviceDidUpdate?(): any;
 }
 
 export interface RouteOptions {
