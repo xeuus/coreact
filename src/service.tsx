@@ -465,7 +465,7 @@ function escapeRegExp(str: string) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function convertWildcardStringToRegExp(expression: string) {
+export function convertWildcard(expression: string) {
   const terms = expression.split('*');
 
   let trailingWildcard = false;
@@ -500,7 +500,7 @@ export class Grouped extends PureComponent<GroupedProps> {
   private static defaultProps = {
     group: '*'
   };
-  checker = convertWildcardStringToRegExp(this.props.group);
+  checker = convertWildcard(this.props.group);
 
   screens = config.screens.filter((item) => {
     const {screen} = metadataOf(item.prototype);
