@@ -5,6 +5,7 @@ import {config, metadata, metadataOf} from "./shared";
 import debounce from "lodash/debounce";
 import {callScreens, setParams} from "./service";
 import {MatchRoute} from "./helpers/match";
+import {string} from 'prop-types'
 
 export interface ServiceEvents {
   serviceWillLoad?(context: RequestContext): Promise<any>;
@@ -33,14 +34,14 @@ export interface RouteOptions {
 }
 
 
-export function Screen(pattern?: string, options: RouteOptions = {}) {
+export function Screen(pattern?: string | (() => string), options: RouteOptions = {}) {
   return (target: any) => {
     const id = config.screen++;
     config.screens[id] = target;
     metadata(target.prototype, {
       id,
       screen: {
-        pattern,
+        pattern: typeof pattern === 'function' ? pattern() : pattern,
         options,
       }
     });
