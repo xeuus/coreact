@@ -213,9 +213,9 @@ export class Client {
         } catch (e) {
           console.error(e);
         }
-        await p.providerDidLoad(context);
         await gatherMethods(context, 'serviceDidLoad');
         await callScreens(context, 'screenWillLoad');
+        await p.providerDidLoad(context);
       }}>{
       () => <ContextProvider context={context}>
         <ConnectedRouter>{p.application}</ConnectedRouter>

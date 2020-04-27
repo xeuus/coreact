@@ -78,6 +78,7 @@ export const registerPersistClient = (context: RequestContext, initial: any) => 
   function lockedSave() {
     if (!lock) {
       lock = true;
+      console.log('persisting');
       gatherMethods(context, 'serviceWillUnload').then(()=>{
         Client.persist();
       }).catch((e)=>{
@@ -86,9 +87,9 @@ export const registerPersistClient = (context: RequestContext, initial: any) => 
       });
     }
   }
-  window.addEventListener('beforeunload', lockedSave);
-  window.addEventListener('pagehide', lockedSave);
-  window.addEventListener('visibilitychange', lockedSave);
+  ['pageshow', 'focus', 'blur', 'visibilitychange', 'resume', 'pagehide', 'freeze'].forEach((type) => {
+    window.addEventListener(type, lockedSave, {capture: true});
+  });
 };
 export const restorePersistedDataOnClientSide = (context: RequestContext) => {
   if (typeof window.localStorage != undefined) {

@@ -254,12 +254,12 @@ export class Server {
         } catch (e) {
           console.error(e);
         }
-        await p.providerDidLoad(context);
         await gatherMethods(context, 'serviceDidLoad');
         await callScreens(context, 'screenWillLoad');
         const saltKey = randomString(50);
         const iso = now.toISOString();
         const cipher = saltKey + iso;
+        await p.providerDidLoad(context);
         await gatherMethods(context, 'serviceWillUnload');
         const data = extractDataOnServerSide(context);
         const keys = Object.keys(data);
