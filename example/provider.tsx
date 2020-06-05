@@ -15,13 +15,6 @@ module.exports = class Provider extends AppProvider {
     this.failure = err => <div>somthing went wrong</div>;
     this.splash = <div>loading</div>;
     this.context.locale = 'fa';
-
-    (window as any).__CLIENT = Client;
-    (window as any).__COREACT = context;
-    (window as any).__SERVICE = context.services.reduce((acc, service) => {
-      acc[service.constructor.name] = service;
-      return acc;
-    }, {} as any);
   }
 };
 
