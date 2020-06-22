@@ -1,10 +1,9 @@
-import {Client, Observable, Order, Ordered, RequestContext, Service, ServiceEvents} from "../../src";
+import {Client, observable, Order, Ordered, RequestContext, Bean, Service} from "../../src";
 
-@Service
+@Bean
 @Order(Ordered.HIGHEST_PRECEDENCE)
-export class LocaleService implements ServiceEvents {
-  @Observable private _idx = false;
-  private context: RequestContext;
+export class LocaleService extends Service {
+  @observable private _idx = false;
   async serviceWillLoad(context: RequestContext) {
     context.locale = context.cookies.locale || 'en';
   }

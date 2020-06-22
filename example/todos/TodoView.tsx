@@ -1,7 +1,7 @@
 import './styles.sass';
 import React, {PureComponent} from 'react';
 import {TodoService} from './TodoService';
-import {Autowired, Observer, RequestContext, ScreenEvents, RoutingService, Screen, optional, Client} from "../../src";
+import {pick, Observer, RequestContext, ScreenEvents, RoutingService, Screen, optional, Client} from "../../src";
 import {routes} from "../routes";
 import {LocaleService} from "./LocaleService";
 import {Assets} from "../assets";
@@ -14,9 +14,9 @@ interface StateType {
 @Observer([TodoService, LocaleService])
 export class TodoView extends PureComponent<{}, StateType> implements ScreenEvents {
 
-  todo = Autowired(TodoService, this);
-  router = Autowired(RoutingService, this);
-  locale = Autowired(LocaleService, this);
+  todo = pick(TodoService, this);
+  router = pick(RoutingService, this);
+  locale = pick(LocaleService, this);
 
   state: StateType = {
     message: '',
@@ -27,11 +27,6 @@ export class TodoView extends PureComponent<{}, StateType> implements ScreenEven
 
   async screenWillLoad(context: RequestContext) {
     optional(() => context.title = 'hello world');
-  }
-
-  componentDidMount(): void {
-
-    Client.reset(TodoService);
   }
 
   render() {

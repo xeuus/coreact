@@ -7,12 +7,8 @@ import {DeserializeQuery} from "./param";
 import {config, metadata, metadataOf} from "./shared";
 import debounce from "lodash/debounce";
 import throttle from "lodash/throttle";
-import {Client} from "./client";
-import {Redirect, Route, RouteComponentProps, Switch} from "react-router";
+import {Redirect, Route, Switch} from "react-router";
 
-export const delayedPersist = debounce(() => {
-  Client.persist();
-}, 5000);
 export const extractDataOnServerSide = (context: RequestContext) => {
   return context.services.reduce((acc, service) => {
     const {id, save = [], loaded = []} = metadataOf(service);
@@ -34,16 +30,7 @@ export const extractDataOnServerSide = (context: RequestContext) => {
   }, {});
 };
 
-export function contextOf(bind: any) {
-  return bind['context'];
-}
-
-export type TimerFunc = {
-  start: () => any
-  stop: () => any
-} & ((context: RequestContext) => void | false);
-
-export const restoreDataOnClientSide = (context: RequestContext, initial: any) => {
+export const restoreDataOnClientSide = (context: RequestContext) => {
   context.services.forEach((service) => {
     const {id, save = []} = metadataOf(service);
     const data = clientRead(`bridge${id}`, context.encrypt);
@@ -56,7 +43,6 @@ export const restoreDataOnClientSide = (context: RequestContext, initial: any) =
         const {key} = data;
         if (json[key]) {
           service[key] = json[key];
-          initial[id][key] = json[key];
         }
       });
     }
@@ -106,21 +92,6 @@ export const gatherAsyncProperties = async (context: RequestContext) => {
     return acc;
   }, []);
   return await Promise.all(pm);
-};
-export const gatherMethods = async (context: RequestContext, name: string) => {
-  const pm = context.services.reduce((acc, service) => {
-    const {order = 0} = metadataOf(service);
-    if (service[name]) {
-      acc.push({
-        order,
-        func: service[name].bind(service),
-      });
-    }
-    return acc;
-  }, []).sort((a: any, b: any) => a.order - b.order);
-  for (let i = 0; i < pm.length; i++) {
-    await pm[i].func(context);
-  }
 };
 
 function initService(context: RequestContext, service: any, fn?: (key: string, value: any) => any) {
@@ -244,9 +215,6 @@ function initService(context: RequestContext, service: any, fn?: (key: string, v
             fn(key, value);
           if (context.environment != 'server') {
             observer.dispatch(key, value);
-            if (context.autoPersist) {
-              delayedPersist();
-            }
           }
         }
       }

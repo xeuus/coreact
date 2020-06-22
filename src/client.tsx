@@ -2,25 +2,18 @@ import React from 'react';
 import {hydrate, render} from 'react-dom';
 import {AppProvider} from './appProvider';
 import {ViewHolder} from './helpers/viewHolder';
-import {
-  callScreens,
-  gatherAsyncProperties,
-  gatherMethods,
-  registerServices,
-  restoreDataOnClientSide,
-  setParams
-} from './service';
+import {callScreens, gatherAsyncProperties, registerServices, restoreDataOnClientSide, setParams} from './service';
 import {baseUrl, dateTime} from './helpers/viewState';
 import {UserAgent} from 'express-useragent';
-import {registerPersistClient, restorePersistedDataOnClientSide, saveInitialValues} from "./persistClientSide";
 import {ConnectedRouter} from "./connectedRouter";
 import {decomposeUrl, DeserializeQuery, ParseCookies} from "./param";
 import {Meta, RequestContext} from "./requestContext";
 import {ContextProvider} from "./context";
 import {clientRead} from "./helpers/clientRead";
-import {fillQueries} from "./shared";
+import {fillQueries, metadataOf} from "./shared";
 import {checkRtl} from "./helpers/checkRtl";
 import jsCookie from 'js-cookie';
+import {invoke, invokeAll} from "./invoke";
 
 export class Client {
   hydrate: any = null;
@@ -72,6 +65,15 @@ export class Client {
       meta: meta,
       title: document.title,
     };
+    context.pick = (target) => {
+      const meta = metadataOf(target.prototype);
+      return context.services[meta.id];
+    };
+    context.invoke = async (target, name,...args) => await invoke(context, target, name, ...args);
+    context.invokeAll = async (name, ...args) => await invokeAll(context, 'all', name, ...args);
+    context.invokeLinear = async (name, ...args) => await invokeAll(context, 'linear', name, ...args);
+    context.invokeParallel = async (name, ...args) => await invokeAll(context, 'parallel', name, ...args);
+    context.invokeRace = async (name, ...args) => await invokeAll(context, 'race', name, ...args);
 
     Object.defineProperty(context, 'title', {
       configurable: false,
@@ -155,8 +157,7 @@ export class Client {
       configurable: false,
       enumerable: true,
       get(): any {
-        const rawUrl = (window.location.pathname + window.location.search).substr(baseUrl.length);
-        return rawUrl;
+        return (window.location.pathname + window.location.search).substr(baseUrl.length);
       }
     });
     Object.defineProperty(context, 'cookies', {
@@ -202,18 +203,17 @@ export class Client {
       splash={p.splash}
       error={p.failure}
       process={async () => {
-        const initial = saveInitialValues(context);
-        registerPersistClient(context, initial);
-        restorePersistedDataOnClientSide(context);
-        restoreDataOnClientSide(context, initial);
-        await gatherMethods(context, 'serviceWillLoad');
+        await context.invokeLinear('serviceWillStart', context);
+        await p.providerWillStart(context);
+        restoreDataOnClientSide(context);
+        await context.invokeLinear( 'serviceWillLoad', context);
         await p.providerWillLoad(context);
         try {
           gatherAsyncProperties(context);
         } catch (e) {
           console.error(e);
         }
-        await gatherMethods(context, 'serviceDidLoad');
+        await context.invokeLinear( 'serviceDidLoad', context);
         await callScreens(context, 'screenWillLoad');
         await p.providerDidLoad(context);
       }}>{
@@ -233,15 +233,4 @@ export class Client {
       });
     }
   }
-
-  static clearCookies = () => {
-  };
-  static persist = () => {
-  };
-  static clearStorage = () => {
-  };
-  static drainService = (service: { new(context?: RequestContext): any }) => {
-  };
-
-  static reset = (service?: { new(context?: RequestContext): any }) => {}
 }

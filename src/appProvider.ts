@@ -13,6 +13,7 @@ export class AppProvider {
   constructor(context: RequestContext) {
     this.context = context;
   }
+  async providerWillStart(context: RequestContext) {};
   async providerWillLoad(context: RequestContext) {
   }
   async providerDidLoad(context: RequestContext) {

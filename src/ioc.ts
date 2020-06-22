@@ -3,23 +3,38 @@ import {EventBus} from "./eventBus";
 import {CoreContext} from "./context";
 import {config, metadata, metadataOf} from "./shared";
 import debounce from "lodash/debounce";
-import {callScreens, setParams} from "./service";
+import {setParams} from "./service";
 import {MatchRoute} from "./helpers/match";
-import {string} from 'prop-types'
 
-export interface ServiceEvents {
+export interface ScreenEvents {
+  screenWillLoad?(context: RequestContext): Promise<any>;
+  serviceDidUpdate?(): any;
+}
+
+export function startTimer(timer: any) {
+  (timer as any).start();
+}
+
+export function stopTimer(timer: any) {
+  (timer as any).start();
+}
+
+export class Service {
+  public context: RequestContext;
+
+  startTimer(timer: any) {
+    startTimer(timer);
+  }
+
+  stopTimer(timer: any) {
+    stopTimer(timer);
+  }
+
   serviceWillLoad?(context: RequestContext): Promise<any>;
 
   serviceDidLoad?(context: RequestContext): Promise<any>;
 
   serviceWillUnload?(context: RequestContext): Promise<any>;
-
-  migrate?(data: any, fromVersion: number, toVersion: number): Promise<any>;
-}
-
-export interface ScreenEvents {
-  screenWillLoad?(context: RequestContext): Promise<any>;
-  serviceDidUpdate?(): any;
 }
 
 export interface RouteOptions {
@@ -49,7 +64,7 @@ export function Screen(pattern?: string | (() => string), options: RouteOptions 
 }
 
 
-export function Consumer(target: any) {
+export function Bundle(target: any) {
   return Observer([])(target)
 }
 
@@ -158,14 +173,14 @@ export function Order(order: number) {
   }
 }
 
-export function Service(target: any) {
+export function Bean(target: any) {
   const id = config.counter++;
   config.services[id] = target;
   metadata(target.prototype, {id, observer: new EventBus()});
   return target;
 }
 
-export function Piped(target: any, key: string) {
+export function piped(target: any, key: string) {
   const {save = []} = metadataOf(target);
   metadata(target, {
     save: [...save, {
@@ -174,7 +189,7 @@ export function Piped(target: any, key: string) {
   });
 }
 
-export function Persisted(target: any, key: string) {
+export function persisted(target: any, key: string) {
   const {persist = []} = metadataOf(target);
   metadata(target, {
     persist: [...persist, {
@@ -183,12 +198,12 @@ export function Persisted(target: any, key: string) {
   });
 }
 
-export function Autowired<T>(type: { new(context?: RequestContext): T }, base: any): T {
+export function pick<T>(type: { new(context?: RequestContext): T }, base: any): T {
   const meta = metadataOf(type.prototype);
   return base.context ? base.context.services[meta.id] : null;
 }
 
-export function Observable(target: any, key: string) {
+export function observable(target: any, key: string) {
   const {observables = []} = metadataOf(target);
   metadata(target, {
     observables: [...observables, {
@@ -197,7 +212,7 @@ export function Observable(target: any, key: string) {
   });
 }
 
-export function Route(pattern?: string, options: RouteOptions = {}) {
+export function route(pattern?: string, options: RouteOptions = {}) {
   return (target: any, key: string) => {
     const {fetch = []} = metadataOf(target);
     metadata(target, {
@@ -209,7 +224,7 @@ export function Route(pattern?: string, options: RouteOptions = {}) {
 }
 
 
-export function FromQuery(target: any, key: string) {
+export function fromQuery(target: any, key: string) {
   const {observables = [], query = []} = metadataOf(target);
   metadata(target, {
     query: [...query, {
@@ -221,7 +236,7 @@ export function FromQuery(target: any, key: string) {
   });
 }
 
-export function BindQuery(name: string, role?: 'replace' | 'goto') {
+export function bindQuery(name: string, role?: 'replace' | 'goto') {
   return function (target: any, key: string) {
     const {observables = [], query = []} = metadataOf(target);
     metadata(target, {
@@ -237,7 +252,7 @@ export function BindQuery(name: string, role?: 'replace' | 'goto') {
   }
 }
 
-export function Debounced(delay: number) {
+export function debounced(delay: number) {
   return function (target: any, key: string) {
     const {actions = []} = metadataOf(target);
     metadata(target, {
@@ -250,7 +265,7 @@ export function Debounced(delay: number) {
   }
 }
 
-export function Throttle(delay: number) {
+export function throttled(delay: number) {
   return function (target: any, key: string) {
     const {actions = []} = metadataOf(target);
     metadata(target, {
@@ -264,7 +279,7 @@ export function Throttle(delay: number) {
 }
 
 
-export function Timer(delay: number, disabled?: boolean) {
+export function timer(delay: number, disabled?: boolean) {
   return function (target: any, key: string) {
     const {timers = []} = metadataOf(target);
     metadata(target, {
@@ -278,7 +293,7 @@ export function Timer(delay: number, disabled?: boolean) {
 }
 
 
-export function FromUrl(pattern: string) {
+export function fromUrl(pattern: string) {
   return function (target: any, key: string) {
     const {observables = [], url = []} = metadataOf(target);
     metadata(target, {
@@ -293,7 +308,7 @@ export function FromUrl(pattern: string) {
   }
 }
 
-export function BindUrl(pattern: string, name: string, role?: 'replace' | 'goto') {
+export function bindUrl(pattern: string, name: string, role?: 'replace' | 'goto') {
   return function (target: any, key: string) {
     const {observables = [], url = []} = metadataOf(target);
     metadata(target, {
@@ -310,7 +325,7 @@ export function BindUrl(pattern: string, name: string, role?: 'replace' | 'goto'
   }
 }
 
-export function Observe(types: { new(context?: RequestContext): any }[], ...keys: string[]) {
+export function observe(types: { new(context?: RequestContext): any }[], ...keys: string[]) {
   return (target: any, key: string) => {
     types.forEach(type => {
       const {observer} = metadataOf(type.prototype);

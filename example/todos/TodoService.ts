@@ -1,4 +1,4 @@
-import {Autowired, Debounced, Observable, Order, Piped, RequestContext, Route, Service} from '../../src';
+import {pick, debounced, observable, Order, piped, RequestContext, route, Bean} from '../../src';
 import {routes} from '../routes';
 import {Networking} from "./Networking";
 
@@ -9,13 +9,13 @@ export interface Todo {
   completed: boolean;
 }
 
-@Service
+@Bean
 @Order(1)
 export class TodoService {
-  net = Autowired(Networking, this);
+  net = pick(Networking, this);
 
-  @Piped @Observable todoList: Todo[] = [];
-  @Piped @Observable currentTodo: Todo = null;
+  @piped @observable todoList: Todo[] = [];
+  @piped @observable currentTodo: Todo = null;
 
 
   async addTodo(message: string) {
@@ -35,15 +35,15 @@ export class TodoService {
     this.currentTodo = response.payload;
   };
 
-  @Route(routes.todoList, {exact: true})
-  @Debounced(200)
+  @route(routes.todoList, {exact: true})
+  @debounced(200)
   async fetchTodosFromServer() {
     const response = await this.net.GET<Todo[]>('/todos');
     this.todoList = response.payload;
   }
 
-  @Route(routes.todoDetail(), {exact: true})
-  @Debounced(200)
+  @route(routes.todoDetail(), {exact: true})
+  @debounced(200)
   async fetchDetail(context: RequestContext) {
     const response = await this.net.GET<Todo>('/todos/detail', {id: context.params.id});
     this.currentTodo = response.payload;

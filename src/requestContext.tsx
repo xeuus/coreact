@@ -32,4 +32,10 @@ export type RequestContext = {
   flags: any,
   title: string,
   meta: Meta[],
+  pick?<T>(target: { new(container?: RequestContext): T }): T;
+  invoke?(target: any, name: string, ...args: any[]): Promise<any>;
+  invokeAll?(name: string, ...args: any[]): Promise<any>;
+  invokeParallel?(name: string, ...args: any[]): Promise<any>;
+  invokeRace?(name: string, ...args: any[]): Promise<any>;
+  invokeLinear?(name: string, ...args: any[]): Promise<any>;
 };

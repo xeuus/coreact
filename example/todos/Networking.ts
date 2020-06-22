@@ -1,8 +1,8 @@
 import axios from "axios";
 import {HttpRequest, HttpResponse, NetLayer} from 'netlayer';
-import {optional, Order, Ordered, RequestContext, Service} from "../../src";
+import {optional, Order, Ordered, RequestContext, Bean} from "../../src";
 
-@Service
+@Bean
 @Order(Ordered.HIGHEST_PRECEDENCE)
 export class Networking extends NetLayer {
 

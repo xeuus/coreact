@@ -9,3 +9,5 @@ export * from './routingService';
 export * from './helpers/match';
 export * from './helpers/functions';
 export * from './helpers/base64';
+export * from './hook';
+export * from './invoke';

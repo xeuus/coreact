@@ -37,7 +37,7 @@ function createStyle(content: string) {
 }
 
 
-export function RegisterDebugger(context: RequestContext) {
+export function registerDebugger(context: RequestContext) {
   if (context.environment == 'server')
     return;
 

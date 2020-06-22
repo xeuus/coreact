@@ -5,22 +5,16 @@ import {Html} from './helpers/html';
 import {wrapHtml} from './helpers/wrapHtml';
 import {StaticRouter} from 'react-router';
 import httpProxy from 'http-proxy';
-import {
-  callScreens,
-  extractDataOnServerSide,
-  gatherAsyncProperties,
-  gatherMethods,
-  registerServices,
-  setParams
-} from './service';
+import {callScreens, extractDataOnServerSide, gatherAsyncProperties, registerServices, setParams} from './service';
 import {ServerPortal} from './helpers/serverPortal';
 import {AppProvider} from './appProvider';
 import {RequestContext} from "./requestContext";
 import {decomposeUrl, DeserializeQuery} from "./param";
 import {randomString} from "./helpers/functions";
 import {ContextProvider} from "./context";
-import {fillQueries} from "./shared";
+import {fillQueries, metadataOf} from "./shared";
 import {RequireMiddleware} from "./require";
+import {invoke, invokeAll} from "./invoke";
 
 const cookieParser = require('cookie-parser');
 const useragent = require('express-useragent');
@@ -232,6 +226,17 @@ export class Server {
           return acc;
         }, {} as any) : {},
       };
+
+      context.pick = (target) => {
+        const meta = metadataOf(target.prototype);
+        return context.services[meta.id];
+      };
+      context.invoke = async (target, name,...args) => await invoke(context, target, name, ...args);
+      context.invokeAll = async (name, ...args) => await invokeAll(context, 'all', name, ...args);
+      context.invokeLinear = async (name, ...args) => await invokeAll(context, 'linear', name, ...args);
+      context.invokeParallel = async (name, ...args) => await invokeAll(context, 'parallel', name, ...args);
+      context.invokeRace = async (name, ...args) => await invokeAll(context, 'race', name, ...args);
+
       const forClient = proxies ? Object.keys(proxies).map(key => {
         const {baseUrl = ''} = proxies[key];
         return {
@@ -247,20 +252,22 @@ export class Server {
       setParams(context);
       const p = new provider(context);
       try {
-        await gatherMethods(context, 'serviceWillLoad');
+        await context.invokeLinear('serviceWillStart', context);
+        await p.providerWillStart(context);
+        await context.invokeLinear( 'serviceWillLoad', context);
         await p.providerWillLoad(context);
         try {
           await gatherAsyncProperties(context);
         } catch (e) {
           console.error(e);
         }
-        await gatherMethods(context, 'serviceDidLoad');
+        await context.invokeLinear( 'serviceDidLoad', context);
         await callScreens(context, 'screenWillLoad');
         const saltKey = randomString(50);
         const iso = now.toISOString();
         const cipher = saltKey + iso;
         await p.providerDidLoad(context);
-        await gatherMethods(context, 'serviceWillUnload');
+        await context.invokeLinear( 'serviceWillUnload', context);
         const data = extractDataOnServerSide(context);
         const keys = Object.keys(data);
         const routerContext = {} as any;
@@ -355,6 +362,7 @@ export class Server {
         res.statusCode = routerContext.status || 200;
         res.end(wrapHtml(html));
       } catch (e) {
+        console.error(e);
         res.statusCode = 500;
         const html = renderToString(
           <Html

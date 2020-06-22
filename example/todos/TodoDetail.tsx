@@ -1,13 +1,13 @@
 import React, {PureComponent} from 'react';
-import {Autowired, Observer, optional, RequestContext, RoutingService, Screen, ScreenEvents} from '../../src';
+import {pick, Observer, optional, RequestContext, RoutingService, Screen, ScreenEvents} from '../../src';
 import {TodoService} from './TodoService';
 import {routes} from "../routes";
 
 @Screen(routes.todoDetail(), {exact: true})
 @Observer([TodoService])
 export class TodoDetail extends PureComponent implements ScreenEvents{
-  todo = Autowired(TodoService, this);
-  router = Autowired(RoutingService, this);
+  todo = pick(TodoService, this);
+  router = pick(RoutingService, this);
 
   async screenWillLoad(context: RequestContext) {
     optional(() => context.title = this.todo.currentTodo.message);
