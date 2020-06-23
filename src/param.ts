@@ -110,10 +110,10 @@ function parseBlock(block: string) {
             } else {
               const num = parseFloat(v);
               if (!isNaN(num)) {
-                if(v.startsWith('0') && v.indexOf('.') > -1 || v === '0'){
-                  obj[key] = num;
-                }else {
+                if(v.startsWith('0') && v.indexOf('.') < 0 && v !== '0'){
                   obj[key] = v;
+                }else {
+                  obj[key] = num;
                 }
               } else {
                 obj[key] = v;
