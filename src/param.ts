@@ -109,8 +109,12 @@ function parseBlock(block: string) {
               obj[key] = v;
             } else {
               const num = parseFloat(v);
-              if (!isNaN(num) && !(v.startsWith('0') && v.includes('.'))) {
-                obj[key] = num;
+              if (!isNaN(num)) {
+                if(v.startsWith('0') && v.indexOf('.') > -1 || v === '0'){
+                  obj[key] = num;
+                }else {
+                  obj[key] = v;
+                }
               } else {
                 obj[key] = v;
               }
